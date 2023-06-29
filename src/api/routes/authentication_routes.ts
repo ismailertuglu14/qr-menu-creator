@@ -1,47 +1,60 @@
 import { Router, Request, Response } from "express";
-import authorizationMiddleware from "../../features/middlewares/authorization_middleware";
 import { signInValidator } from "../../features/validators/signin_validator";
 import { signUpValidator } from "../../features/validators/signup_validator";
 
+// Models
 import ResturantCredential from "../models/restaurant_credential_model";
+import Restaurant from "../models/restaurant_model";
+
+// Exceptions
+import UnauthorizedException from "../../core/exceptions/unauthorized_exception";
+
+// Response
+import BaseResponse from "../../core/response/base_response";
+import { ResponseStatus } from "../../core/constants/response_status_enum";
+
+// Utils
+import { generateToken, verifyToken } from "../../features/utils/token_helper";
 import {
   hashPassword,
   comparePassword,
 } from "../../features/utils/hash_password";
-import UnauthorizedException from "../../core/exceptions/unauthorized_exception";
 
-import BaseResponse from "../../core/response/base_response";
-import { ResponseStatus } from "../../core/constants/response_status_enum";
+// Dtos
 import TokenDto from "../dtos/token_dto";
-import { generateToken, verifyToken } from "../../features/utils/token_helper";
 const router = Router();
 
 router.post("/signin", async (req: Request, res: Response, next) => {
   try {
-    const { userNameOrEmail, password, restaurantId } = req.body;
+    const { email, password, restaurantId } = req.body;
     await signInValidator
       .validate({
-        userNameOrEmail,
+        email,
         password,
-      })
-      .then((value) => {
-        //   console.log("hata : ", value);
       })
       .catch((_) => {
         throw new Error("Validation Error");
       });
 
     var response = await ResturantCredential.findOne({
-      userName: userNameOrEmail,
+      email: email,
     });
 
     if (!response) {
-      throw new UnauthorizedException("Invalid username or password");
+      throw new UnauthorizedException("Invalid email or password");
     }
     if (!(await comparePassword(password, response.hashedPassword))) {
-      throw new UnauthorizedException("Invalid username or password");
+      throw new UnauthorizedException("Invalid email or password");
     }
-    const token = generateToken(response._id);
+
+    var restaurant = await Restaurant.findOne({
+      _id: response._id,
+    });
+
+    const token = generateToken({
+      id: response._id,
+      role: restaurant.role,
+    });
 
     return res.status(200).json(BaseResponse.success(token));
   } catch (e) {
@@ -52,7 +65,7 @@ router.post("/signin", async (req: Request, res: Response, next) => {
 router.post("/signup", async (req: Request, res: Response) => {
   try {
     const {
-      userName,
+      restaurantName,
       email,
       password,
       passwordAgain,
@@ -61,6 +74,7 @@ router.post("/signup", async (req: Request, res: Response) => {
 
     await signUpValidator
       .validate({
+        restaurantName,
         email,
         password,
         passwordAgain,
@@ -84,7 +98,6 @@ router.post("/signup", async (req: Request, res: Response) => {
     }
 
     var restaurantCredential = new ResturantCredential({
-      userName: userName,
       email: email,
       hashedPassword: await hashPassword(password),
       phone: {
@@ -92,11 +105,25 @@ router.post("/signup", async (req: Request, res: Response) => {
         phoneNumber: phoneNumber,
       },
     });
-    var response = await ResturantCredential.create(restaurantCredential);
-    console.log(response);
-    if (!response) throw new Error("Error while creating user");
+    var restauntCredentialResponse = await ResturantCredential.create(
+      restaurantCredential
+    );
+    if (!restauntCredentialResponse)
+      throw new Error("Error while creating user");
 
-    return res.status(200).json({ message: response });
+    var restaurant = new Restaurant({
+      _id: restaurantCredential._id,
+      name: restaurantName,
+    });
+    var restaurantResponse = await Restaurant.create(restaurant);
+    return res
+      .status(200)
+      .json(
+        BaseResponse.success(
+          { restauntCredentialResponse, restaurantResponse },
+          ResponseStatus.SUCCESS
+        )
+      );
   } catch (error) {
     return res
       .status(500)
@@ -109,14 +136,10 @@ router.post("/signup", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/signup-restaurant", (req: Request, response: Response) => {
-  const {} = req.body;
-});
-
 /**
- * @param userName
+ * @param phoneNumber
  * @param email
- * @param ResponseStatus.SUCCESS if username and email are unique.
+ * @param ResponseStatus.SUCCESS if phoneNumber and email are unique.
  * @param ResponseStatus.EMAIL_ALREADY_EXISTS if email already exists in database.
  */
 async function checkIsUserUnique(

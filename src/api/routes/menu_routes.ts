@@ -4,6 +4,7 @@ import MenuModel from "../models/menu_model";
 import BaseResponse from "../../core/response/base_response";
 import { ResponseStatus } from "../../core/constants/response_status_enum";
 import MenuValidator from "../../features/validators/menu_validator";
+import BadRequestException from "../../core/exceptions/bad_request_exception";
 const router = Router();
 
 router.get("/all", authorizationMiddleware, async (req, res, next) => {
@@ -23,19 +24,20 @@ router.get("/all", authorizationMiddleware, async (req, res, next) => {
 });
 
 router.post("/create", authorizationMiddleware, async (req, res, next) => {
-  const { restaurantId, templateId } = req.body;
+  const { restaurantId, templateId, name } = req.body;
 
   try {
     const menu = await MenuModel.create({
       restaurantId,
       templateId,
+      name,
     });
 
     await MenuValidator.validate({
       restaurantId,
       templateId,
     }).catch((err) => {
-      throw new Error(err);
+      throw new BadRequestException(err);
     });
 
     res.status(200).json(BaseResponse.success(menu, ResponseStatus.SUCCESS));

@@ -14,6 +14,7 @@ import RestaurantModel from "../models/restaurant_model";
 import BaseResponse from "../../core/response/base_response";
 import { ResponseStatus } from "../../core/constants/response_status_enum";
 import storageFunction from "../../core/storage/multer_storage";
+import { IngredientModel } from "api/dtos/ingredients_model";
 const upload = multer({ storage: storageFunction("product") });
 type imageType = {
   fieldname: string;
@@ -49,14 +50,18 @@ router.post(
           imageNames.push(image.originalname);
         });
       }
-
+      console.log("ingretiends:", ingredients);
+      var ingredientList: IngredientModel[] = JSON.parse(
+        JSON.stringify([ingredients])
+      );
+      console.log("ingredientList: ", ingredientList);
       const product = await Product.create({
         restaurantId,
         menuId,
         categoryId,
         name,
         description,
-        ingredients,
+        ingredientList,
         allergens,
         price,
         currency,

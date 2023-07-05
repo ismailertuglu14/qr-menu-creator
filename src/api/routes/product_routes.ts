@@ -6,7 +6,7 @@ import authorizationMiddleware from "../../features/middlewares/authorization_mi
 // Storage
 import MulterStorage from "../../core/storage/multer_storage";
 // Models
-import Product from "../models/product_model";
+import ProductModel from "../models/product_model";
 import CategoryModel from "../models/category_model";
 import RestaurantModel from "../models/restaurant_model";
 
@@ -24,6 +24,78 @@ type imageType = {
 };
 interface images extends imageType {}
 const router = Router();
+
+router.get("/customer/all", async (req: Request, res: Response) => {
+  try {
+    const { menuId } = req.body;
+    const products = await ProductModel.find(
+      {
+        menuId,
+        isActive: true,
+      },
+      {
+        _id: 1,
+        name: 1,
+        description: 1,
+        images: 1,
+        price: 1,
+        currency: 1,
+      }
+    );
+
+    products.forEach((product: any) =>
+      product.images != null && product.images.length > 0
+        ? (product.images = `${process.env.APP_URL}/uploads/product/${product.images[0]}`)
+        : null
+    );
+
+    res
+      .status(200)
+      .json(BaseResponse.success(products, ResponseStatus.SUCCESS));
+  } catch (error) {
+    res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+  }
+});
+
+router.get("/restaurant/all", async (req: Request, res: Response) => {
+  try {
+    const { restaurantId } = req.body;
+    let { isActive } = req.query;
+    if (!isActive) isActive = "true";
+    const products = await ProductModel.find(
+      {
+        restaurantId,
+        isActive: isActive,
+      },
+      {
+        _id: 1,
+        name: 1,
+        description: 1,
+        image: 1,
+        price: 1,
+        currency: 1,
+        isActive: 1,
+      }
+    );
+
+    products.forEach((product: any) =>
+      product.images != null && product.images.length > 0
+        ? (product.images = `${process.env.APP_URL}/uploads/product/${product.images[0]}`)
+        : null
+    );
+
+    res
+      .status(200)
+      .json(BaseResponse.success(products, ResponseStatus.SUCCESS));
+  } catch (error) {
+    res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+  }
+});
+
+router.put("/update", async (req: Request, res: Response) => {
+  // await ProductModel.updateMany({}, { $set: { isActive: true } });
+  // res.status(200).json(BaseResponse.success({}, ResponseStatus.SUCCESS));
+});
 
 router.post(
   "/create",
@@ -55,7 +127,7 @@ router.post(
         JSON.stringify([ingredients])
       );
       console.log("ingredientList: ", ingredientList);
-      const product = await Product.create({
+      const product = await ProductModel.create({
         restaurantId,
         menuId,
         categoryId,

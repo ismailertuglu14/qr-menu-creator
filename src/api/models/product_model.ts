@@ -40,6 +40,10 @@ const productSchema = new mongoose.Schema({
   images: {
     type: Array<ProductImageModel>,
   },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const Product = mongoose.model("Product", productSchema);

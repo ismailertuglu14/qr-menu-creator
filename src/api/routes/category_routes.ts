@@ -13,10 +13,73 @@ import RestaurantModel from "../models/restaurant_model";
 import BaseResponse from "../../core/response/base_response";
 import { ResponseStatus } from "../../core/constants/response_status_enum";
 import storageFunction from "../../core/storage/multer_storage";
+
 const router = Router();
 
 const upload = multer({ storage: storageFunction("category") });
 
+router.get("/customer/all", async (req: Request, res: Response) => {
+  try {
+    const { menuId } = req.body;
+    const categories = await CategoryModel.find(
+      {
+        menuId,
+        isActive: true,
+      },
+      {
+        _id: 1,
+        name: 1,
+        description: 1,
+        image: 1,
+      }
+    );
+
+    categories.forEach(
+      (category: any) =>
+        (category.image = `${process.env.APP_URL}/uploads/category/${category.image}`)
+    );
+
+    res
+      .status(200)
+      .json(BaseResponse.success(categories, ResponseStatus.SUCCESS));
+  } catch (error) {
+    res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+  }
+});
+router.get(
+  "/restaurant/all",
+  authorizationMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const { restaurantId, menuId } = req.body;
+      let { isActive } = req.query;
+      if (!isActive) isActive = "true";
+      var categories = await CategoryModel.find(
+        {
+          restaurantId,
+          menuId,
+          isActive,
+        },
+        {
+          _id: 1,
+          name: 1,
+          description: 1,
+          image: 1,
+          isActive: 1,
+        }
+      );
+      categories.forEach(
+        (category) =>
+          (category.image = `${process.env.APP_URL}/uploads/category/${category.image}`)
+      );
+      res
+        .status(200)
+        .json(BaseResponse.success(categories, ResponseStatus.SUCCESS));
+    } catch (error) {
+      res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+    }
+  }
+);
 router.post(
   "/create",
   upload.single("image"),

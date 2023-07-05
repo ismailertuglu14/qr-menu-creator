@@ -22,7 +22,7 @@ type imageType = {
   encoding: string;
   mimetype: string;
 };
-interface images extends imageType {}
+interface images extends imageType { }
 const router = Router();
 
 router.get("/customer/all", async (req: Request, res: Response) => {
@@ -57,40 +57,44 @@ router.get("/customer/all", async (req: Request, res: Response) => {
   }
 });
 
-router.get("/restaurant/all", async (req: Request, res: Response) => {
-  try {
-    const { restaurantId } = req.body;
-    let { isActive } = req.query;
-    if (!isActive) isActive = "true";
-    const products = await ProductModel.find(
-      {
-        restaurantId,
-        isActive: isActive,
-      },
-      {
-        _id: 1,
-        name: 1,
-        description: 1,
-        image: 1,
-        price: 1,
-        currency: 1,
-        isActive: 1,
-      }
-    );
+router.get(
+  "/restaurant/all",
+  authorizationMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const { categoryId } = req.body;
+      let { isActive } = req.query;
+      if (!isActive) isActive = "true";
+      const products = await ProductModel.find(
+        {
+          categoryId,
+          isActive: isActive,
+        },
+        {
+          _id: 1,
+          name: 1,
+          description: 1,
+          image: 1,
+          price: 1,
+          currency: 1,
+          isActive: 1,
+        }
+      );
 
-    products.forEach((product: any) =>
-      product.images != null && product.images.length > 0
-        ? (product.images = `${process.env.APP_URL}/uploads/product/${product.images[0]}`)
-        : null
-    );
+      products.forEach((product: any) =>
+        product.images != null && product.images.length > 0
+          ? (product.images = `${process.env.APP_URL}/uploads/product/${product.images[0]}`)
+          : null
+      );
 
-    res
-      .status(200)
-      .json(BaseResponse.success(products, ResponseStatus.SUCCESS));
-  } catch (error) {
-    res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+      res
+        .status(200)
+        .json(BaseResponse.success(products, ResponseStatus.SUCCESS));
+    } catch (error) {
+      res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+    }
   }
-});
+);
 
 router.put("/update", async (req: Request, res: Response) => {
   // await ProductModel.updateMany({}, { $set: { isActive: true } });

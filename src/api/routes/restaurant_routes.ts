@@ -48,8 +48,8 @@ router.post(
           profileImage: req.file.filename,
         }
       );
-
-      res.status(200).json(BaseResponse.success("Image uploaded successfully"));
+      const imageurl = `${process.env.APP_URL}/uploads/restaurant-profile-image/${req.file.filename}`;
+      res.status(200).json(BaseResponse.success(imageurl));
     } catch (error) {
       res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
     }

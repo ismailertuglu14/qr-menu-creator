@@ -8,7 +8,7 @@ import MulterStorage from "../../core/storage/multer_storage";
 // Models
 import CategoryModel from "../models/category_model";
 import RestaurantModel from "../models/restaurant_model";
-
+import ProductModel from "../models/product_model";
 // Response
 import BaseResponse from "../../core/response/base_response";
 import { ResponseStatus } from "../../core/constants/response_status_enum";
@@ -33,15 +33,37 @@ router.get("/customer/all", async (req: Request, res: Response) => {
         image: 1,
       }
     );
-
     categories.forEach(
       (category: any) =>
         (category.image = `${process.env.APP_URL}/uploads/category/${category.image}`)
     );
+    const categoryIds = categories.map((category) => category._id);
 
-    res
-      .status(200)
-      .json(BaseResponse.success(categories, ResponseStatus.SUCCESS));
+    const productCounts = await Promise.all(
+      categoryIds.map(async (categoryId) => {
+        const count = await ProductModel.countDocuments({
+          categoryId,
+          isActive: true,
+        });
+        return { categoryId, count };
+      })
+    );
+    let dtos: Object[] = [];
+
+    categories.forEach((category) => {
+      const productCount = productCounts.find(
+        (productCount) => productCount.categoryId === category._id
+      );
+      dtos.push({
+        _id: category._id,
+        name: category.name,
+        description: category.description,
+        image: category.image,
+        productCount: productCount?.count,
+      });
+    });
+
+    res.status(200).json(BaseResponse.success(dtos, ResponseStatus.SUCCESS));
   } catch (error) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }
@@ -69,12 +91,36 @@ router.get(
         }
       );
       categories.forEach(
-        (category) =>
+        (category: any) =>
           (category.image = `${process.env.APP_URL}/uploads/category/${category.image}`)
       );
-      res
-        .status(200)
-        .json(BaseResponse.success(categories, ResponseStatus.SUCCESS));
+      const categoryIds = categories.map((category) => category._id);
+
+      const productCounts = await Promise.all(
+        categoryIds.map(async (categoryId) => {
+          const count = await ProductModel.countDocuments({
+            categoryId,
+            isActive: true,
+          });
+          return { categoryId, count };
+        })
+      );
+      let dtos: Object[] = [];
+
+      categories.forEach((category) => {
+        const productCount = productCounts.find(
+          (productCount) => productCount.categoryId === category._id
+        );
+        dtos.push({
+          _id: category._id,
+          name: category.name,
+          description: category.description,
+          image: category.image,
+          productCount: productCount?.count,
+        });
+      });
+
+      res.status(200).json(BaseResponse.success(dtos, ResponseStatus.SUCCESS));
     } catch (error) {
       res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
     }

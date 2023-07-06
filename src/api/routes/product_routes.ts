@@ -157,4 +157,31 @@ router.post(
   }
 );
 
+router.post(
+  "/delete",
+  authorizationMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const { restaurantId, productId } = req.body;
+
+      const product = await ProductModel.findOne({
+        _id: productId,
+        restaurantId,
+      });
+      if (!product) throw new Error("Product not found");
+      product.isActive = false;
+      
+      await product.save();
+
+      res.status(200).json(BaseResponse.success(null, ResponseStatus.SUCCESS));
+    } catch (error) {
+      res
+        .status(500)
+        .send(
+          BaseResponse.fail(error.message, ResponseStatus.INTERNAL_SERVER_ERROR)
+        );
+    }
+  }
+);
+
 export default router;

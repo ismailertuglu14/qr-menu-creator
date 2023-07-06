@@ -13,6 +13,7 @@ import ProductModel from "../models/product_model";
 import BaseResponse from "../../core/response/base_response";
 import { ResponseStatus } from "../../core/constants/response_status_enum";
 import storageFunction from "../../core/storage/multer_storage";
+import NotFoundException from "../../core/exceptions/not_found_exception";
 
 const router = Router();
 
@@ -164,4 +165,29 @@ router.post(
   }
 );
 
+router.post(
+  "/delete",
+  authorizationMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const { restaurantId, categoryId } = req.body;
+
+      const restaurant = await RestaurantModel.findOne({ _id: restaurantId });
+
+      if (!restaurant) throw new NotFoundException("Restaurant not found");
+
+      const category = await CategoryModel.findOne({ _id: categoryId });
+
+      if (!category) throw new NotFoundException("Category not found");
+
+      category.isActive = false;
+
+      await category.save();
+
+      res.status(200).json(BaseResponse.success(null, ResponseStatus.SUCCESS));
+    } catch (error) {
+      res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+    }
+  }
+);
 export default router;

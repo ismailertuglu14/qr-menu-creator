@@ -26,6 +26,10 @@ const menuSchema = new mongoose.Schema({
     default: getFormattedDate(),
     required: true,
   },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const Menu = mongoose.model("Menu", menuSchema);

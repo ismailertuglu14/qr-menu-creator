@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import authorizationMiddleware from "../../features/middlewares/authorization_middleware";
 import MenuModel from "../models/menu_model";
+import ProductModel from "../models/product_model";
 import BaseResponse from "../../core/response/base_response";
 import { ResponseStatus } from "../../core/constants/response_status_enum";
 import MenuValidator from "../../features/validators/menu_validator";
@@ -11,9 +12,37 @@ router.get("/all", authorizationMiddleware, async (req, res, next) => {
   try {
     const { restaurantId } = req.body;
 
-    const menus = await MenuModel.find({ restaurantId });
+    const menus = await MenuModel.find(
+      { restaurantId },
+      {
+        name: 1,
+        templateId: 1,
+        restaurantId: 1,
+      }
+    );
+    const menuIds = menus.map((menu) => menu._id);
 
-    res.status(200).json(BaseResponse.success(menus, ResponseStatus.SUCCESS));
+    const productCounts = await Promise.all(
+      menuIds.map(async (menuId) => {
+        const count = await ProductModel.countDocuments({ menuId });
+        return { menuId, count };
+      })
+    );
+    let dtos: Object[] = [];
+    menus.forEach((menu) => {
+      const productCount = productCounts.find(
+        (productCount) => productCount.menuId === menu._id
+      );
+      dtos.push({
+        _id: menu._id,
+        name: menu.name,
+        templateId: menu.templateId,
+        restaurantId: menu.restaurantId,
+        productCount: productCount?.count,
+      });
+    });
+
+    res.status(200).json(BaseResponse.success(dtos, ResponseStatus.SUCCESS));
   } catch (error) {
     res
       .status(500)

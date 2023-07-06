@@ -142,6 +142,7 @@ router.post(
         price,
         currency,
         images: imageNames,
+        createdDate: new Date(),
       });
 
       res
@@ -170,7 +171,7 @@ router.post(
       });
       if (!product) throw new Error("Product not found");
       product.isActive = false;
-      
+
       await product.save();
 
       res.status(200).json(BaseResponse.success(null, ResponseStatus.SUCCESS));

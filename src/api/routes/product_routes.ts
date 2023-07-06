@@ -22,7 +22,7 @@ type imageType = {
   encoding: string;
   mimetype: string;
 };
-interface images extends imageType {}
+interface images extends imageType { }
 const router = Router();
 
 router.get("/customer/all", async (req: Request, res: Response) => {

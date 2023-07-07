@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import authorizationMiddleware from "../../features/middlewares/authorization_middleware";
 import MenuModel from "../models/menu_model";
+import CategoryModel from "../models/category_model";
 import ProductModel from "../models/product_model";
 import BaseResponse from "../../core/response/base_response";
 import { ResponseStatus } from "../../core/constants/response_status_enum";
@@ -12,7 +13,10 @@ const router = Router();
 router.get("/all", authorizationMiddleware, async (req, res, next) => {
   try {
     const { restaurantId } = req.body;
+    let { isActive } = req.query;
 
+    if (!isActive) isActive = "true";
+    console.log(isActive);
     const menus = await MenuModel.find(
       { restaurantId },
       {
@@ -25,7 +29,10 @@ router.get("/all", authorizationMiddleware, async (req, res, next) => {
 
     const productCounts = await Promise.all(
       menuIds.map(async (menuId) => {
-        const count = await ProductModel.countDocuments({ menuId });
+        const count = await ProductModel.countDocuments({
+          menuId,
+          isActive: isActive,
+        });
         return { menuId, count };
       })
     );
@@ -91,7 +98,10 @@ router.post("/delete", authorizationMiddleware, async (req, res, next) => {
     menu.isActive = false;
     await menu.save();
 
-    res.status(200).json(BaseResponse.success({}, ResponseStatus.SUCCESS));
+    await CategoryModel.updateMany({ menuId }, { isActive: false });
+    await ProductModel.updateMany({ menuId }, { isActive: false });
+
+    res.status(200).json(BaseResponse.success(null, ResponseStatus.SUCCESS));
   } catch (error) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }

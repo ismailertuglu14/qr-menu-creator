@@ -184,6 +184,8 @@ router.post(
 
       await category.save();
 
+      await ProductModel.updateMany({ categoryId }, { isActive: false });
+
       res.status(200).json(BaseResponse.success(null, ResponseStatus.SUCCESS));
     } catch (error) {
       res.status(500).json(BaseResponse.fail(error.message, error.statusCode));

@@ -36,10 +36,23 @@ router.get("/all", authorizationMiddleware, async (req, res, next) => {
         return { menuId, count };
       })
     );
+    const categoryCounts = await Promise.all(
+      menuIds.map(async (menuId) => {
+        const count = await CategoryModel.countDocuments({
+          menuId,
+          isActive: isActive,
+        });
+        return { menuId, count };
+      })
+    );
+
     let dtos: Object[] = [];
     menus.forEach((menu) => {
       const productCount = productCounts.find(
         (productCount) => productCount.menuId === menu._id
+      );
+      const categoryCount = categoryCounts.find(
+        (categoryCount) => categoryCount.menuId === menu._id
       );
       dtos.push({
         _id: menu._id,
@@ -47,6 +60,7 @@ router.get("/all", authorizationMiddleware, async (req, res, next) => {
         templateId: menu.templateId,
         restaurantId: menu.restaurantId,
         productCount: productCount?.count,
+        categoryCount: categoryCount.count,
       });
     });
 

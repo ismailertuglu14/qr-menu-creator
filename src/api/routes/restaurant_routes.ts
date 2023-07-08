@@ -24,6 +24,7 @@ import StorageEnum from "../../core/constants/storage/storage_enum";
 import { uploadImage, deleteImage } from "../../core/storage/azure_storage";
 import { uploadFileRename } from "../../features/utils/file_helpers";
 
+
 router.post(
   "/change-profile-image",
   upload.single("image"),
@@ -31,7 +32,11 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       if (!req.file) {
-        return res.status(400).send("Yüklenen dosya bulunamadı!");
+        return res
+          .status(400)
+          .send(
+            BaseResponse.fail("File is required", ResponseStatus.BAD_REQUEST)
+          );
       }
       const { restaurantId } = req.body;
 
@@ -62,7 +67,6 @@ router.post(
           profileImage: fileName,
         }
       );
-      const imageurl = `${process.env.APP_URL}/uploads/restaurant-profile-image/${req.file.filename}`;
       res.status(200).json(BaseResponse.success(fileUrl));
     } catch (error) {
       console.log(error);

@@ -22,6 +22,8 @@ import {
 
 // Dtos
 import TokenDto from "../dtos/token_dto";
+import authorizationMiddleware from "../../features/middlewares/authorization_middleware";
+import NotFoundException from "../../core/exceptions/not_found_exception";
 const router = Router();
 
 router.post("/signin", async (req: Request, res: Response, next) => {
@@ -135,6 +137,31 @@ router.post("/signup", async (req: Request, res: Response) => {
       );
   }
 });
+router.put(
+  "/change-password",
+  authorizationMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const { restaurantId, oldPassword, newPassword } = req.body;
+
+      const restaurant = await ResturantCredential.findOne({
+        _id: restaurantId,
+      });
+
+      if (!restaurant) throw new NotFoundException("Restaurant not found");
+
+      if (!(await comparePassword(oldPassword, restaurant.hashedPassword)))
+        throw new UnauthorizedException("Invalid password");
+
+      restaurant.hashedPassword = await hashPassword(newPassword);
+      await restaurant.save();
+
+      return res.status(200).json(BaseResponse.success("Password changed"));
+    } catch (error) {
+      res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+    }
+  }
+);
 
 /**
  * @param phoneNumber

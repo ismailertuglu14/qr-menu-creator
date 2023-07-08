@@ -29,15 +29,19 @@ async function uploadMultipleImage(
     await containerClient.create();
   }
 
-  for (let i = 0; i < blobNames.length; i++) {
-    const blockBlobClient = containerClient.getBlockBlobClient(blobNames[i]);
+  const uploadPromises = blobNames.map(async (blobName, i) => {
+    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
     const uploadBlobResponse = await blockBlobClient.uploadData(
       files[i].buffer,
       {
         blobHTTPHeaders: { blobContentType: files[i].mimetype },
       }
     );
-  }
+    return uploadBlobResponse;
+  });
+
+  await Promise.all(uploadPromises);
+
   return true;
 }
 

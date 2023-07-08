@@ -53,7 +53,10 @@ router.get("/customer/all", async (req: Request, res: Response) => {
 
     products.forEach((product: any) =>
       product.images != null && product.images.length > 0
-        ? (product.images = `${process.env.APP_URL}/uploads/product/${product.images[0]}`)
+        ? (product.images = getFileNameWithUrl(
+            StorageEnum.PRODUCT_IMAGES,
+            product.images[0]
+          ))
         : null
     );
 
@@ -82,16 +85,19 @@ router.get(
           _id: 1,
           name: 1,
           description: 1,
-          image: 1,
+          images: 1,
           price: 1,
           currency: 1,
           isActive: 1,
         }
       );
-
+      console.log(JSON.stringify(products));
       products.forEach((product: any) =>
         product.images != null && product.images.length > 0
-          ? (product.images = `${process.env.APP_URL}/uploads/product/${product.images[0]}`)
+          ? (product.images = getFileNameWithUrl(
+              StorageEnum.PRODUCT_IMAGES,
+              product.images[0]
+            ))
           : null
       );
 

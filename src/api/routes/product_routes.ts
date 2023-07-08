@@ -125,6 +125,7 @@ router.post(
         allergens,
         price,
         currency,
+        isActive,
       } = req.body;
 
       const productImages: images[] = req.files as images[];
@@ -160,6 +161,7 @@ router.post(
         price,
         currency,
         images: imageNames,
+        isActive,
         createdDate: new Date(),
       });
       product.images = imageNames.map((imageUrl) => {

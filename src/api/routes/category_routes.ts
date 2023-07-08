@@ -15,12 +15,15 @@ import { ResponseStatus } from "../../core/constants/response_status_enum";
 import storageFunction from "../../core/storage/multer_storage";
 import NotFoundException from "../../core/exceptions/not_found_exception";
 
-const router = Router();
 import upload from "../../core/storage/multer_storage";
-import { uploadFileRename } from "../../features/utils/file_helpers";
+import {
+  getFileNameWithUrl,
+  uploadFileRename,
+} from "../../features/utils/file_helpers";
 import { uploadImage } from "../../core/storage/azure_storage";
 import StorageEnum from "../../core/constants/storage/storage_enum";
 
+const router = Router();
 router.get("/customer/all", async (req: Request, res: Response) => {
   try {
     const { menuId } = req.body;
@@ -38,7 +41,10 @@ router.get("/customer/all", async (req: Request, res: Response) => {
     );
     categories.forEach(
       (category: any) =>
-        (category.image = `${process.env.APP_URL}/uploads/category/${category.image}`)
+        (category.image = getFileNameWithUrl(
+          StorageEnum.CATEGORY_IMAGES,
+          category.image
+        ))
     );
     const categoryIds = categories.map((category) => category._id);
 
@@ -95,7 +101,10 @@ router.get(
       );
       categories.forEach(
         (category: any) =>
-          (category.image = `${process.env.APP_URL}/uploads/category/${category.image}`)
+          (category.image = getFileNameWithUrl(
+            StorageEnum.CATEGORY_IMAGES,
+            category.image
+          ))
       );
       const categoryIds = categories.map((category) => category._id);
 

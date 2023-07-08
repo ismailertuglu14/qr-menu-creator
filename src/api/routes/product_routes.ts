@@ -91,7 +91,6 @@ router.get(
           isActive: 1,
         }
       );
-      console.log(JSON.stringify(products));
       products.forEach((product: any) =>
         product.images != null && product.images.length > 0
           ? (product.images = getFileNameWithUrl(

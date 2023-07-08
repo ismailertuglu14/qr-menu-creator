@@ -4,7 +4,7 @@ import { Router, Request, Response } from "express";
 import authorizationMiddleware from "../../features/middlewares/authorization_middleware";
 
 // Storage
-import MulterStorage from "../../core/storage/multer_storage";
+import upload from "../../core/storage/multer_storage";
 // Models
 import ProductModel from "../models/product_model";
 import CategoryModel from "../models/category_model";
@@ -15,7 +15,15 @@ import BaseResponse from "../../core/response/base_response";
 import { ResponseStatus } from "../../core/constants/response_status_enum";
 import storageFunction from "../../core/storage/multer_storage";
 import { IngredientModel } from "api/dtos/ingredients_model";
-const upload = multer({ storage: storageFunction("product") });
+import {
+  getFileNameWithUrl,
+  uploadFileRename,
+} from "../../features/utils/file_helpers";
+import {
+  uploadImage,
+  uploadMultipleImage,
+} from "../../core/storage/azure_storage";
+import StorageEnum from "../../core/constants/storage/storage_enum";
 type imageType = {
   fieldname: string;
   originalname: string;
@@ -118,19 +126,29 @@ router.post(
         price,
         currency,
       } = req.body;
+
       const productImages: images[] = req.files as images[];
+
       if (!restaurantId) throw new Error("Restaurant id is required");
+
       let imageNames: string[] = [];
+
       if (productImages && productImages.length > 0) {
         productImages.forEach((image) => {
-          imageNames.push(image.originalname);
+          imageNames.push(uploadFileRename(image.originalname));
         });
       }
-      console.log("ingretiends:", ingredients);
+
+      await uploadMultipleImage(
+        StorageEnum.PRODUCT_IMAGES,
+        imageNames,
+        productImages
+      );
+
       var ingredientList: IngredientModel[] = JSON.parse(
         JSON.stringify([ingredients])
       );
-      console.log("ingredientList: ", ingredientList);
+
       const product = await ProductModel.create({
         restaurantId,
         menuId,
@@ -144,7 +162,9 @@ router.post(
         images: imageNames,
         createdDate: new Date(),
       });
-
+      product.images = imageNames.map((imageUrl) => {
+        return getFileNameWithUrl(StorageEnum.PRODUCT_IMAGES, imageUrl);
+      });
       res
         .status(200)
         .json(BaseResponse.success(product, ResponseStatus.SUCCESS));

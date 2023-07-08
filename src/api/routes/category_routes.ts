@@ -4,7 +4,7 @@ import { Router, Request, Response } from "express";
 import authorizationMiddleware from "../../features/middlewares/authorization_middleware";
 
 // Storage
-import MulterStorage from "../../core/storage/multer_storage";
+
 // Models
 import CategoryModel from "../models/category_model";
 import RestaurantModel from "../models/restaurant_model";
@@ -16,8 +16,10 @@ import storageFunction from "../../core/storage/multer_storage";
 import NotFoundException from "../../core/exceptions/not_found_exception";
 
 const router = Router();
-
-const upload = multer({ storage: storageFunction("category") });
+import upload from "../../core/storage/multer_storage";
+import { uploadFileRename } from "../../features/utils/file_helpers";
+import { uploadImage } from "../../core/storage/azure_storage";
+import StorageEnum from "../../core/constants/storage/storage_enum";
 
 router.get("/customer/all", async (req: Request, res: Response) => {
   try {
@@ -127,6 +129,34 @@ router.get(
     }
   }
 );
+// router.put(
+//   "/change-position",
+//   authorizationMiddleware,
+//   async (req: Request, res: Response) => {
+//     try {
+//       const { restaurantId, categoryId, newPosition } = req.body;
+
+//       const category = await CategoryModel.findOne({
+//         _id: categoryId,
+//         restaurantId,
+//       });
+
+//       await CategoryModel.updateMany(
+//         {
+//           restaurantId,
+//           position: category.position,
+//         },
+//         {
+//           $set: {
+//             position: newPosition,
+//           },
+//         }
+//       );
+//     } catch (error) {
+//       res.send(500).json(BaseResponse.fail(error.message, error.statusCode));
+//     }
+//   }
+// );
 router.post(
   "/create",
   upload.single("image"),
@@ -138,13 +168,25 @@ router.post(
 
       if (!restaurant) throw new Error("Restaurant not found");
 
+      let imageName: string | null;
+      let uploadedImagePath: string | null;
+
+      if (req.file !== undefined || req.file !== null) {
+        imageName = uploadFileRename(req.file.originalname);
+        uploadedImagePath = await uploadImage(
+          StorageEnum.CATEGORY_IMAGES,
+          imageName,
+          req.file
+        );
+      }
+
       const category = await CategoryModel.create({
         restaurantId,
         menuId: menuId,
         name,
-        image: req.file.filename,
+        image: imageName,
       });
-
+      category.image = uploadedImagePath;
       // await MenuValidator.validate({
       //   restaurantId,
       //   templateId,

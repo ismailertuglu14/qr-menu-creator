@@ -30,6 +30,11 @@ const menuSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  // position: {
+  //   type: Number,
+  //   default: 0,
+  //   unique: true,
+  // },
 });
 
 const Menu = mongoose.model("Menu", menuSchema);

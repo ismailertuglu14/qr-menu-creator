@@ -18,7 +18,7 @@ router.get("/all", authorizationMiddleware, async (req, res, next) => {
     if (!isActive) isActive = "true";
     console.log(isActive);
     const menus = await MenuModel.find(
-      { restaurantId },
+      { restaurantId, isActive: isActive },
       {
         name: 1,
         templateId: 1,

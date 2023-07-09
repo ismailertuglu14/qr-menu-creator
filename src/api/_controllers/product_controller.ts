@@ -190,7 +190,8 @@ export async function updateProduct(req: Request, res: Response) {
   try {
     const {
       restaurantId,
-      productId,
+      menuId,
+      categoryId,
       name,
       description,
       ingredients,
@@ -201,6 +202,7 @@ export async function updateProduct(req: Request, res: Response) {
       isActive,
     } = req.body;
 
+    const productId = req.params.id;
     if (!restaurantId) throw new Error("Restaurant id is required");
     const product = await ProductModel.findById(productId);
 
@@ -209,7 +211,10 @@ export async function updateProduct(req: Request, res: Response) {
     const productImages: images[] = req.files as images[];
 
     if (productImages && productImages.length > 0) {
-      let imageNames: string[] = [];
+      console.log("if girdi");
+      let isImagesChanged = false;
+
+      var imageNames: string[] = [];
       productImages.forEach((image) => {
         imageNames.push(uploadFileRename(image.originalname));
       });
@@ -221,29 +226,40 @@ export async function updateProduct(req: Request, res: Response) {
         productImages
       );
     }
-
     var ingredientsList = JSON.parse(ingredients);
     var nutritionList = JSON.parse(nutritions);
 
-    await ProductModel.updateOne(
+    var updatedProduct = await ProductModel.findOneAndUpdate(
       { _id: productId },
       {
         $set: {
           name,
           description,
+          menuId,
+          categoryId,
           ingredients: ingredientsList,
           nutritions: nutritionList,
           allergens,
           price,
+          images: imageNames,
           currency,
           isActive,
           updatedDate: new Date(),
         },
       }
     );
-
-    res.status(200).json(BaseResponse.success(null, ResponseStatus.SUCCESS));
+    let imageUrls: any[] = [];
+    updatedProduct.images !== null && updatedProduct.images.length > 0
+      ? updatedProduct.images.forEach((image: any) => {
+          imageUrls.push(getFileNameWithUrl(StorageEnum.PRODUCT_IMAGES, image));
+        })
+      : null;
+    updatedProduct.images = imageUrls;
+    res
+      .status(200)
+      .json(BaseResponse.success(updatedProduct, ResponseStatus.SUCCESS));
   } catch (error) {
+    console.log(error);
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }
 }

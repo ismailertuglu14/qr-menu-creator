@@ -38,7 +38,12 @@ router.get("/customer/all", customerGetProducts);
 
 router.get("/restaurant/all", authorizationMiddleware, restaurantGetProducts);
 
-router.put("/update/:id", authorizationMiddleware, updateProduct);
+router.put(
+  "/update/:id",
+  upload.array("images"),
+  authorizationMiddleware,
+  updateProduct
+);
 
 router.post(
   "/create",

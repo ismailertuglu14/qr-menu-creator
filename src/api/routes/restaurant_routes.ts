@@ -2,9 +2,8 @@ import { Router, Request, Response } from "express";
 
 import authorizationMiddleware from "../../features/middlewares/authorization_middleware";
 
-import MulterStorage from "../../core/storage/multer_storage";
-
 import Restaurant from "../models/restaurant_model";
+import RestaurantCredential from "../models/restaurant_credential_model";
 import UnauthorizedException from "../../core/exceptions/unauthorized_exception";
 
 import multer from "multer";
@@ -12,18 +11,48 @@ import multer from "multer";
 import BaseResponse from "../../core/response/base_response";
 import { ResponseStatus } from "../../core/constants/response_status_enum";
 
-// Utils
-import { generateToken, verifyToken } from "../../features/utils/token_helper";
-import fs from "fs";
-import storageFunction from "../../core/storage/multer_storage";
-
-const router = Router();
 //const upload = multer({ storage: storageFunction("restaurant-profile-image") });
 import upload from "../../core/storage/multer_storage";
 import StorageEnum from "../../core/constants/storage/storage_enum";
 import { uploadImage, deleteImage } from "../../core/storage/azure_storage";
 import { uploadFileRename } from "../../features/utils/file_helpers";
 
+const router = Router();
+
+router.get(
+  "/",
+  authorizationMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const { restaurantId } = req.body;
+
+      const restaurant = await Restaurant.findOne(
+        {
+          _id: restaurantId,
+        },
+        { role: 0, __v: 0 }
+      );
+
+      if (!restaurant) throw new UnauthorizedException("Invalid restaurant id");
+
+      let restaurantDto = {};
+
+      const restaurantCredential = await RestaurantCredential.findOne({
+        _id: restaurantId,
+      });
+
+      restaurantDto = {
+        ...restaurant.toObject(),
+        email: restaurantCredential?.email,
+        phone: restaurantCredential?.phone,
+      };
+
+      res.status(200).json(BaseResponse.success(restaurantDto));
+    } catch (error) {
+      res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+    }
+  }
+);
 
 router.post(
   "/change-profile-image",

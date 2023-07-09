@@ -77,6 +77,7 @@ router.get("/customer/all", async (req: Request, res: Response) => {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }
 });
+
 router.get(
   "/restaurant/all",
   authorizationMiddleware,
@@ -138,34 +139,41 @@ router.get(
     }
   }
 );
-// router.put(
-//   "/change-position",
-//   authorizationMiddleware,
-//   async (req: Request, res: Response) => {
-//     try {
-//       const { restaurantId, categoryId, newPosition } = req.body;
 
-//       const category = await CategoryModel.findOne({
-//         _id: categoryId,
-//         restaurantId,
-//       });
+// sonra bakılacak.
+router.put(
+  "/change-position",
+  authorizationMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const { restaurantId, categoryId, newPosition } = req.body;
 
-//       await CategoryModel.updateMany(
-//         {
-//           restaurantId,
-//           position: category.position,
-//         },
-//         {
-//           $set: {
-//             position: newPosition,
-//           },
-//         }
-//       );
-//     } catch (error) {
-//       res.send(500).json(BaseResponse.fail(error.message, error.statusCode));
-//     }
-//   }
-// );
+      // find the greates position parameter category
+      const greatestPositionCategory = await CategoryModel.findOne({
+        restaurantId,
+      }).sort({ position: -1 });
+
+      // find the category to be changed
+      const category = await CategoryModel.findOne({
+        _id: categoryId,
+        restaurantId,
+      });
+
+      await CategoryModel.updateMany(
+        {
+          restaurantId,
+        },
+        {
+          $set: {
+            position: newPosition,
+          },
+        }
+      );
+    } catch (error) {
+      res.send(500).json(BaseResponse.fail(error.message, error.statusCode));
+    }
+  }
+);
 router.post(
   "/create",
   upload.single("image"),
@@ -180,7 +188,8 @@ router.post(
       let imageName: string | null;
       let uploadedImagePath: string | null;
 
-      if (req.file !== undefined || req.file !== null) {
+      if (req.file !== undefined) {
+        console.log("if girdi");
         imageName = uploadFileRename(req.file.originalname);
         uploadedImagePath = await uploadImage(
           StorageEnum.CATEGORY_IMAGES,
@@ -188,12 +197,17 @@ router.post(
           req.file
         );
       }
+      const maxPositionCategory = await CategoryModel.findOne({
+        restaurantId,
+      }).sort({ position: -1 });
 
       const category = await CategoryModel.create({
         restaurantId,
         menuId: menuId,
         name,
         image: imageName,
+        position:
+          maxPositionCategory != null ? maxPositionCategory?.position + 1 : 0,
       });
       category.image = uploadedImagePath;
       // await MenuValidator.validate({

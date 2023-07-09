@@ -23,11 +23,9 @@ const categorySchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
-  // position: {
-  //   type: Number,
-  //   default: 0,
-  //   unique: true,
-  // },
+  position: {
+    type: Number,
+  },
 });
 
 const Category = mongoose.model("Category", categorySchema);

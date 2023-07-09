@@ -2,17 +2,16 @@ import { get } from "mongoose";
 
 export function uploadFileRename(name: string): string {
   const splitted = name.split(".");
-  let nameWithoutExtension = "";
-  for (let i = 0; i < splitted.length - 1; i++) {
-    nameWithoutExtension += splitted[i];
-  }
-  const tarih = Date.now().toString();
-  const yeniAd = nameWithoutExtension
-    .replace(/\s+/g, "-")
-    .replace(/\./g, "-")
+  const extension = splitted.pop();
+
+  const nameWithoutExtension = splitted.join("");
+
+  const date = Date.now().toString();
+  const newName = nameWithoutExtension
+    .replace(/\s+|\./g, "-") // Tüm boşlukları ve noktaları tire ile değiştir
     .replace(/\//g, "-");
 
-  return `${yeniAd}-${tarih}.${splitted.pop()}`; // Sonunda tarih ve uzantıyı ekleyerek yeni adı oluştur
+  return `${newName}-${date}.${extension}`;
 }
 
 export function getFileNameWithUrl(

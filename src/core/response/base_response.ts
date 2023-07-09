@@ -28,7 +28,11 @@ export default class BaseResponse<T> {
       null,
       false,
       statusCode,
-      Array.isArray(errors) ? errors : [errors]
+      process.env.RUNTIME_ENV === "development"
+        ? Array.isArray(errors)
+          ? errors
+          : [errors]
+        : null
     );
   }
 }

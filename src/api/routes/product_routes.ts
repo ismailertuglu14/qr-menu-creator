@@ -32,7 +32,12 @@ type imageType = {
 };
 interface images extends imageType {}
 const router = Router();
-
+router.get("/:id", (req: Request, res: Response) => {
+  try {
+  } catch (error) {
+    res.status(500).json(BaseResponse.fail(error));
+  }
+});
 router.get("/customer/all", async (req: Request, res: Response) => {
   try {
     const { categoryId } = req.body;

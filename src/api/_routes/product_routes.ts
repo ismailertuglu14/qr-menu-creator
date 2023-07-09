@@ -15,16 +15,16 @@ import BaseResponse from "../../core/response/base_response";
 import { ResponseStatus } from "../../core/constants/response_status_enum";
 import storageFunction from "../../core/storage/multer_storage";
 import { IngredientModel } from "api/dtos/product/ingredients_model";
-import {
-  getFileNameWithUrl,
-  uploadFileRename,
-} from "../../features/utils/file_helpers";
+import { getFileNameWithUrl } from "../../features/utils/file_helpers";
 import {
   uploadImage,
   uploadMultipleImage,
 } from "../../core/storage/azure_storage";
+
+import { createProduct } from "../_controllers/product_controller";
+
 import StorageEnum from "../../core/constants/storage/storage_enum";
-import { NutritionModel } from "../../api/dtos/product/nutritions_model";
+import { NutritionModel } from "../dtos/product/nutritions_model";
 type imageType = {
   fieldname: string;
   originalname: string;
@@ -124,70 +124,7 @@ router.post(
   "/create",
   upload.array("images"),
   authorizationMiddleware,
-  async (req, res, next) => {
-    try {
-      const {
-        restaurantId,
-        menuId,
-        categoryId,
-        name,
-        description,
-        ingredients,
-        allergens,
-        nutritions,
-        price,
-        currency,
-        isActive,
-      } = req.body;
-
-      const productImages: images[] = req.files as images[];
-
-      if (!restaurantId) throw new Error("Restaurant id is required");
-
-      let imageNames: string[] = [];
-
-      if (productImages && productImages.length > 0) {
-        productImages.forEach((image) => {
-          imageNames.push(uploadFileRename(image.originalname));
-        });
-      }
-
-      var imageUrls = await uploadMultipleImage(
-        StorageEnum.PRODUCT_IMAGES,
-        imageNames,
-        productImages
-      );
-
-      var ingredientsList = JSON.parse(ingredients);
-      var nutritionList = JSON.parse(nutritions);
-
-      const product = await ProductModel.create({
-        restaurantId,
-        menuId,
-        categoryId,
-        name,
-        description,
-        ingredients: ingredientsList,
-        nutritions: nutritionList,
-        allergens,
-        price,
-        currency,
-        images: imageUrls,
-        isActive,
-        createdDate: new Date(),
-      });
-
-      res
-        .status(200)
-        .json(BaseResponse.success(product, ResponseStatus.SUCCESS));
-    } catch (error) {
-      res
-        .status(500)
-        .json(
-          BaseResponse.fail(error.message, ResponseStatus.INTERNAL_SERVER_ERROR)
-        );
-    }
-  }
+  createProduct
 );
 
 router.post(

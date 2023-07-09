@@ -4,7 +4,7 @@ import bodyParser from "body-parser";
 import connectMongoDb from "../src/core/connection/mongo_connection";
 import path from "path";
 // Routes"
-import Routes from "./api/routes/index";
+import Routes from "./api/_routes/index";
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;

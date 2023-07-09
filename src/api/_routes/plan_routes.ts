@@ -3,7 +3,7 @@ import { Router, Request, Response } from "express";
 import authorizationMiddleware from "../../features/middlewares/authorization_middleware";
 
 import Restaurant from "../models/restaurant_model";
-import Plan from "../../api/models/plan_model";
+import Plan from "../models/plan_model";
 import UnauthorizedException from "../../core/exceptions/unauthorized_exception";
 
 // Response

@@ -152,18 +152,15 @@ router.post(
         });
       }
 
-      await uploadMultipleImage(
+      var imageUrls = await uploadMultipleImage(
         StorageEnum.PRODUCT_IMAGES,
         imageNames,
         productImages
       );
+
       var ingredientsList = JSON.parse(ingredients);
       var nutritionList = JSON.parse(nutritions);
-      // var ingredientList: IngredientModel[] = JSON.parse(
-      //   JSON.stringify([ingredients])
-      // );
-      //console.log(ingredientList);
-      //const nutritionList: NutritionModel[] = JSON.parse(nutritions);
+
       const product = await ProductModel.create({
         restaurantId,
         menuId,
@@ -175,13 +172,11 @@ router.post(
         allergens,
         price,
         currency,
-        images: imageNames,
+        images: imageUrls,
         isActive,
         createdDate: new Date(),
       });
-      product.images = imageNames.map((imageUrl) => {
-        return getFileNameWithUrl(StorageEnum.PRODUCT_IMAGES, imageUrl);
-      });
+
       res
         .status(200)
         .json(BaseResponse.success(product, ResponseStatus.SUCCESS));

@@ -23,7 +23,7 @@ async function uploadMultipleImage(
   containerName: string,
   blobNames: string[],
   files: any[]
-) {
+): Promise<string[]> {
   const containerClient = blobServiceClient.getContainerClient(containerName);
   if (!(await containerClient.exists())) {
     await containerClient.create();
@@ -42,7 +42,9 @@ async function uploadMultipleImage(
 
   await Promise.all(uploadPromises);
 
-  return true;
+  return blobNames.map((blobName) =>
+    getFileNameWithUrl(containerName, blobName)
+  );
 }
 
 async function deleteImage(containerName: string, blobName: string) {

@@ -246,7 +246,8 @@ export async function updateProduct(req: Request, res: Response) {
           isActive,
           updatedDate: new Date(),
         },
-      }
+      },
+      { new: true }
     );
     let imageUrls: any[] = [];
     updatedProduct.images !== null && updatedProduct.images.length > 0

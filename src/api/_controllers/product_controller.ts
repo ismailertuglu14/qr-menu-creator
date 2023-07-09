@@ -12,13 +12,31 @@ import { Request, Response, NextFunction } from "express";
 import ProductModel from "../models/product_model";
 import MenuModel from "../models/menu_model";
 import CategoryModel from "../models/category_model";
-type imageType = {
-  fieldname: string;
-  originalname: string;
-  encoding: string;
-  mimetype: string;
-};
-interface images extends imageType {}
+import NotFoundException from "../../core/exceptions/not_found_exception";
+
+export async function getProductById(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    const product = await ProductModel.findOne(
+      { _id: id, isActive: true },
+      { __v: 0, isActive: 0 }
+    ).orFail(new NotFoundException("Product not found"));
+    res.status(200).json(BaseResponse.success(product));
+  } catch (error) {
+    res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+  }
+}
+export async function restaurantGetProductById(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    const product = await ProductModel.findOne({ _id: id }, { __v: 0 }).orFail(
+      new NotFoundException("Product not found")
+    );
+    res.status(200).json(BaseResponse.success(product));
+  } catch (error) {
+    res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+  }
+}
 
 export async function customerGetProducts(req: Request, res: Response) {
   try {
@@ -188,3 +206,10 @@ export async function deleteProduct(req: Request, res: Response) {
       );
   }
 }
+type imageType = {
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+};
+interface images extends imageType {}

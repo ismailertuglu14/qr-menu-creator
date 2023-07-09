@@ -18,18 +18,21 @@ import {
   restaurantGetProducts,
   createProduct,
   deleteProduct,
+  getProductById,
+  restaurantGetProductById,
 } from "../_controllers/product_controller";
 
 import StorageEnum from "../../core/constants/storage/storage_enum";
 import { NutritionModel } from "../dtos/product/nutritions_model";
 
 const router = Router();
-router.get("/:id", (req: Request, res: Response) => {
-  try {
-  } catch (error) {
-    res.status(500).json(BaseResponse.fail(error));
-  }
-});
+router.get("/:id", getProductById);
+router.get(
+  "/restaurant/:id",
+  authorizationMiddleware,
+  restaurantGetProductById
+);
+
 router.get("/customer/all", customerGetProducts);
 
 router.get("/restaurant/all", authorizationMiddleware, restaurantGetProducts);

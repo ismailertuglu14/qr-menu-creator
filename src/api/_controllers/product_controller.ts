@@ -2,7 +2,10 @@ import { ResponseStatus } from "../../core/constants/response_status_enum";
 import StorageEnum from "../../core/constants/storage/storage_enum";
 import BaseResponse from "../../core/response/base_response";
 import { uploadMultipleImage } from "../../core/storage/azure_storage";
-import { uploadFileRename } from "../../features/utils/file_helpers";
+import {
+  getFileNameWithUrl,
+  uploadFileRename,
+} from "../../features/utils/file_helpers";
 import { Request, Response, NextFunction } from "express";
 
 // Entities
@@ -17,6 +20,76 @@ type imageType = {
 };
 interface images extends imageType {}
 
+export async function customerGetProducts(req: Request, res: Response) {
+  try {
+    const { categoryId } = req.body;
+    const products = await ProductModel.find(
+      {
+        categoryId,
+        isActive: true,
+      },
+      {
+        _id: 1,
+        name: 1,
+        description: 1,
+        images: 1,
+        price: 1,
+        currency: 1,
+      }
+    );
+
+    products.forEach((product: any) =>
+      product.images != null && product.images.length > 0
+        ? (product.images = getFileNameWithUrl(
+            StorageEnum.PRODUCT_IMAGES,
+            product.images[0]
+          ))
+        : null
+    );
+
+    res
+      .status(200)
+      .json(BaseResponse.success(products, ResponseStatus.SUCCESS));
+  } catch (error) {
+    res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+  }
+}
+export async function restaurantGetProducts(req: Request, res: Response) {
+  try {
+    const { categoryId } = req.body;
+    let { isActive } = req.query;
+    if (!isActive) isActive = "true";
+    const products = await ProductModel.find(
+      {
+        categoryId,
+        isActive: isActive,
+      },
+      {
+        _id: 1,
+        name: 1,
+        description: 1,
+        images: 1,
+        price: 1,
+        currency: 1,
+        isActive: 1,
+      }
+    );
+    products.forEach((product: any) =>
+      product.images != null && product.images.length > 0
+        ? (product.images = getFileNameWithUrl(
+            StorageEnum.PRODUCT_IMAGES,
+            product.images[0]
+          ))
+        : null
+    );
+
+    res
+      .status(200)
+      .json(BaseResponse.success(products, ResponseStatus.SUCCESS));
+  } catch (error) {
+    res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+  }
+}
 export async function createProduct(
   req: Request,
   res: Response,
@@ -42,8 +115,10 @@ export async function createProduct(
     if (!restaurantId) throw new Error("Restaurant id is required");
 
     const [menu, category] = await Promise.all([
-      MenuModel.findById(menuId).orFail(new Error("Menu not found")),
-      CategoryModel.findById(categoryId).orFail(
+      MenuModel.findOne({ _id: menuId, isActive: true }).orFail(
+        new Error("Menu not found")
+      ),
+      CategoryModel.findOne({ _id: categoryId, isActive: true }).orFail(
         new Error("Category not found")
       ),
     ]);
@@ -56,7 +131,7 @@ export async function createProduct(
       });
     }
 
-    var imageUrls = await uploadMultipleImage(
+    await uploadMultipleImage(
       StorageEnum.PRODUCT_IMAGES,
       imageNames,
       productImages
@@ -76,7 +151,7 @@ export async function createProduct(
       allergens,
       price,
       currency,
-      images: imageUrls,
+      images: imageNames,
       isActive,
       createdDate: new Date(),
     });
@@ -86,6 +161,29 @@ export async function createProduct(
     res
       .status(500)
       .json(
+        BaseResponse.fail(error.message, ResponseStatus.INTERNAL_SERVER_ERROR)
+      );
+  }
+}
+
+export async function deleteProduct(req: Request, res: Response) {
+  try {
+    const { restaurantId, productId } = req.body;
+
+    const product = await ProductModel.findOne({
+      _id: productId,
+      restaurantId,
+    });
+    if (!product) throw new Error("Product not found");
+    product.isActive = false;
+
+    await product.save();
+
+    res.status(200).json(BaseResponse.success(null, ResponseStatus.SUCCESS));
+  } catch (error) {
+    res
+      .status(500)
+      .send(
         BaseResponse.fail(error.message, ResponseStatus.INTERNAL_SERVER_ERROR)
       );
   }

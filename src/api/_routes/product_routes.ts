@@ -20,6 +20,7 @@ import {
   deleteProduct,
   customerGetProductById,
   restaurantGetProductById,
+  updateProduct,
 } from "../_controllers/product_controller";
 
 import StorageEnum from "../../core/constants/storage/storage_enum";
@@ -37,33 +38,7 @@ router.get("/customer/all", customerGetProducts);
 
 router.get("/restaurant/all", authorizationMiddleware, restaurantGetProducts);
 
-router.put(
-  "/update/:id",
-  authorizationMiddleware,
-  async (req: Request, res: Response) => {
-    try {
-      const {
-        restaurantId,
-        menuId,
-        categoryId,
-        name,
-        description,
-        ingredients,
-        allergens,
-        nutritions,
-        price,
-        currency,
-        isActive,
-      } = req.body;
-
-      const id = req.params.id;
-
-      res.status(200).json(BaseResponse.success(null));
-    } catch (error) {
-      res.status(500).json(BaseResponse.fail(error));
-    }
-  }
-);
+router.put("/update/:id", authorizationMiddleware, updateProduct);
 
 router.post(
   "/create",

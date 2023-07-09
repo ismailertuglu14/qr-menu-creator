@@ -14,7 +14,7 @@ import RestaurantModel from "../models/restaurant_model";
 import BaseResponse from "../../core/response/base_response";
 import { ResponseStatus } from "../../core/constants/response_status_enum";
 import storageFunction from "../../core/storage/multer_storage";
-import { IngredientModel } from "api/dtos/ingredients_model";
+import { IngredientModel } from "api/dtos/product/ingredients_model";
 import {
   getFileNameWithUrl,
   uploadFileRename,
@@ -24,6 +24,7 @@ import {
   uploadMultipleImage,
 } from "../../core/storage/azure_storage";
 import StorageEnum from "../../core/constants/storage/storage_enum";
+import { NutritionModel } from "../../api/dtos/product/nutritions_model";
 type imageType = {
   fieldname: string;
   originalname: string;
@@ -133,6 +134,7 @@ router.post(
         description,
         ingredients,
         allergens,
+        nutritions,
         price,
         currency,
         isActive,
@@ -155,18 +157,21 @@ router.post(
         imageNames,
         productImages
       );
-
-      var ingredientList: IngredientModel[] = JSON.parse(
-        JSON.stringify([ingredients])
-      );
-
+      var ingredientsList = JSON.parse(ingredients);
+      var nutritionList = JSON.parse(nutritions);
+      // var ingredientList: IngredientModel[] = JSON.parse(
+      //   JSON.stringify([ingredients])
+      // );
+      //console.log(ingredientList);
+      //const nutritionList: NutritionModel[] = JSON.parse(nutritions);
       const product = await ProductModel.create({
         restaurantId,
         menuId,
         categoryId,
         name,
         description,
-        ingredientList,
+        ingredients: ingredientsList,
+        nutritions: nutritionList,
         allergens,
         price,
         currency,

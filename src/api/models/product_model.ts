@@ -1,7 +1,14 @@
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
 import Currency from "../../core/constants/currency_enum";
 import ProductImageModel from "../dtos/product_image_model";
-import { IngredientModel, defaultIngredients } from "../dtos/ingredients_model";
+import {
+  IngredientModel,
+  defaultIngredients,
+} from "../dtos/product/ingredients_model";
+import {
+  NutritionModel,
+  defaultNutritionTypes,
+} from "../../api/dtos/product/nutritions_model";
 const productSchema = new mongoose.Schema({
   restaurantId: {
     type: String,
@@ -25,6 +32,10 @@ const productSchema = new mongoose.Schema({
   ingredients: {
     type: Array<IngredientModel>,
     default: defaultIngredients,
+  },
+  nutritions: {
+    type: Array<NutritionModel>,
+    default: defaultNutritionTypes,
   },
   allergens: {
     type: String,

@@ -53,4 +53,13 @@ async function deleteImage(containerName: string, blobName: string) {
   const deleteBlobResponse = await blockBlobClient.deleteIfExists();
   return deleteBlobResponse;
 }
-export { uploadImage, uploadMultipleImage, deleteImage };
+async function deleteMultipleImage(containerName: string, blobNames: string[]) {
+  const containerClient = blobServiceClient.getContainerClient(containerName);
+  const deletePromises = blobNames.map(async (blobName) => {
+    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+    const deleteBlobResponse = await blockBlobClient.deleteIfExists();
+    return deleteBlobResponse;
+  });
+  await Promise.all(deletePromises);
+}
+export { uploadImage, uploadMultipleImage, deleteImage, deleteMultipleImage };

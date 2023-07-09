@@ -18,7 +18,7 @@ import {
   restaurantGetProducts,
   createProduct,
   deleteProduct,
-  getProductById,
+  customerGetProductById,
   restaurantGetProductById,
 } from "../_controllers/product_controller";
 
@@ -26,7 +26,7 @@ import StorageEnum from "../../core/constants/storage/storage_enum";
 import { NutritionModel } from "../dtos/product/nutritions_model";
 
 const router = Router();
-router.get("/:id", getProductById);
+router.get("/:id", customerGetProductById);
 router.get(
   "/restaurant/:id",
   authorizationMiddleware,

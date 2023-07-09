@@ -1,7 +1,10 @@
 import { ResponseStatus } from "../../core/constants/response_status_enum";
 import StorageEnum from "../../core/constants/storage/storage_enum";
 import BaseResponse from "../../core/response/base_response";
-import { uploadMultipleImage } from "../../core/storage/azure_storage";
+import {
+  deleteMultipleImage,
+  uploadMultipleImage,
+} from "../../core/storage/azure_storage";
 import {
   getFileNameWithUrl,
   uploadFileRename,
@@ -14,7 +17,7 @@ import MenuModel from "../models/menu_model";
 import CategoryModel from "../models/category_model";
 import NotFoundException from "../../core/exceptions/not_found_exception";
 
-export async function getProductById(req: Request, res: Response) {
+export async function customerGetProductById(req: Request, res: Response) {
   try {
     const { id } = req.params;
     const product = await ProductModel.findOne(
@@ -183,7 +186,67 @@ export async function createProduct(
       );
   }
 }
+export async function updateProduct(req: Request, res: Response) {
+  try {
+    const {
+      restaurantId,
+      productId,
+      name,
+      description,
+      ingredients,
+      allergens,
+      nutritions,
+      price,
+      currency,
+      isActive,
+    } = req.body;
 
+    if (!restaurantId) throw new Error("Restaurant id is required");
+    const product = await ProductModel.findById(productId);
+
+    if (!product) throw new NotFoundException("Product not found");
+
+    const productImages: images[] = req.files as images[];
+
+    if (productImages && productImages.length > 0) {
+      let imageNames: string[] = [];
+      productImages.forEach((image) => {
+        imageNames.push(uploadFileRename(image.originalname));
+      });
+
+      await deleteMultipleImage(StorageEnum.PRODUCT_IMAGES, imageNames);
+      await uploadMultipleImage(
+        StorageEnum.PRODUCT_IMAGES,
+        imageNames,
+        productImages
+      );
+    }
+
+    var ingredientsList = JSON.parse(ingredients);
+    var nutritionList = JSON.parse(nutritions);
+
+    await ProductModel.updateOne(
+      { _id: productId },
+      {
+        $set: {
+          name,
+          description,
+          ingredients: ingredientsList,
+          nutritions: nutritionList,
+          allergens,
+          price,
+          currency,
+          isActive,
+          updatedDate: new Date(),
+        },
+      }
+    );
+
+    res.status(200).json(BaseResponse.success(null, ResponseStatus.SUCCESS));
+  } catch (error) {
+    res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+  }
+}
 export async function deleteProduct(req: Request, res: Response) {
   try {
     const { restaurantId, productId } = req.body;
@@ -206,6 +269,7 @@ export async function deleteProduct(req: Request, res: Response) {
       );
   }
 }
+
 type imageType = {
   fieldname: string;
   originalname: string;

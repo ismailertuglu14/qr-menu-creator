@@ -41,6 +41,8 @@ router.get("/customer/all", async (req: Request, res: Response) => {
     );
     categories.forEach(
       (category: any) =>
+        category.image !== null &&
+        category.image !== undefined &&
         (category.image = getFileNameWithUrl(
           StorageEnum.CATEGORY_IMAGES,
           category.image
@@ -77,7 +79,6 @@ router.get("/customer/all", async (req: Request, res: Response) => {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }
 });
-
 router.get(
   "/restaurant/all",
   authorizationMiddleware,
@@ -85,23 +86,44 @@ router.get(
     try {
       const { restaurantId, menuId } = req.body;
       let { isActive } = req.query;
-      if (!isActive) isActive = "true";
-      var categories = await CategoryModel.find(
-        {
-          restaurantId,
-          menuId,
-          isActive,
-        },
-        {
-          _id: 1,
-          name: 1,
-          description: 1,
-          image: 1,
-          isActive: 1,
-        }
-      );
+
+      var categories: Array<any> = [];
+
+      if (isActive === undefined) {
+        categories = await CategoryModel.find(
+          {
+            restaurantId,
+            menuId,
+          },
+          {
+            _id: 1,
+            name: 1,
+            description: 1,
+            image: 1,
+            isActive: 1,
+          }
+        );
+      } else {
+        categories = await CategoryModel.find(
+          {
+            restaurantId,
+            menuId,
+            isActive,
+          },
+          {
+            _id: 1,
+            name: 1,
+            description: 1,
+            image: 1,
+            isActive: 1,
+          }
+        );
+      }
+
       categories.forEach(
         (category: any) =>
+          category.image !== null &&
+          category.image !== undefined &&
           (category.image = getFileNameWithUrl(
             StorageEnum.CATEGORY_IMAGES,
             category.image
@@ -130,6 +152,7 @@ router.get(
           description: category.description,
           image: category.image,
           productCount: productCount?.count,
+          isActive: category.isActive,
         });
       });
 

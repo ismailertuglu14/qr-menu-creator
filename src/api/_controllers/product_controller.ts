@@ -211,9 +211,6 @@ export async function updateProduct(req: Request, res: Response) {
     const productImages: images[] = req.files as images[];
 
     if (productImages && productImages.length > 0) {
-      console.log("if girdi");
-      let isImagesChanged = false;
-
       var imageNames: string[] = [];
       productImages.forEach((image) => {
         imageNames.push(uploadFileRename(image.originalname));

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 import Roles from "../../core/constants/role_enum";
+import Currency from "../../core/constants/currency_enum";
 
 const RestaurantSchema = new mongoose.Schema({
   _id: { type: String, default: uuidv4 },
@@ -37,6 +38,19 @@ const RestaurantSchema = new mongoose.Schema({
     type: String,
     default: null,
     required: false,
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+  defaultCurrency: {
+    type: String,
+    enum: Currency,
+    default: Currency.TL,
   },
 });
 

@@ -59,7 +59,6 @@ router.post(
 
   createCategory
 );
-//.
 
 router.post("/delete", authorizationMiddleware, deleteCategory);
 export default router;

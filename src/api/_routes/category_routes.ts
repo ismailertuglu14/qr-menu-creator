@@ -1,21 +1,12 @@
-import multer from "multer";
-
 import { Router, Request, Response } from "express";
 import authorizationMiddleware from "../../features/middlewares/authorization_middleware";
 
 // Models
 import CategoryModel from "../models/category_model";
-import RestaurantModel from "../models/restaurant_model";
-import ProductModel from "../models/product_model";
 // Response
 import BaseResponse from "../../core/response/base_response";
-import { ResponseStatus } from "../../core/constants/response_status_enum";
-import NotFoundException from "../../core/exceptions/not_found_exception";
 
 import upload from "../../core/storage/multer_storage";
-import { uploadFileRename } from "../../features/utils/file_helpers";
-import { uploadImage } from "../../core/storage/azure_storage";
-import StorageEnum from "../../core/constants/storage/storage_enum";
 import {
   customerGetCategories,
   restaurantGetCategories,
@@ -68,6 +59,7 @@ router.post(
 
   createCategory
 );
+//.
 
 router.post("/delete", authorizationMiddleware, deleteCategory);
 export default router;

@@ -17,7 +17,7 @@ app.use(bodyParser.json());
 
 // Add "/api/v1" prefix to all routes code
 
-app.use(Routes);
+app.use("/api/v1", Routes);
 
 app.listen(PORT, async () => {
   await connectMongoDb();

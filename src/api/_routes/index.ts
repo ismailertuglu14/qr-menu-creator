@@ -8,11 +8,11 @@ import MenuRoutes from "./menu_routes";
 import CategoryRoutes from "./category_routes";
 import ProductRoutes from "./product_routes";
 
-router.use("/api/v1/auth", AuthenticationRoutes);
-router.use("/api/v1/plan", PlanRoutes);
-router.use("/api/v1/restaurant", RestaurantRoutes);
-router.use("/api/v1/menu", MenuRoutes);
-router.use("/api/v1/category", CategoryRoutes);
-router.use("/api/v1/product", ProductRoutes);
+router.use("/auth", AuthenticationRoutes);
+router.use("/plan", PlanRoutes);
+router.use("/restaurant", RestaurantRoutes);
+router.use("/menu", MenuRoutes);
+router.use("/category", CategoryRoutes);
+router.use("/product", ProductRoutes);
 
 export default router;

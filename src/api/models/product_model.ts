@@ -1,6 +1,6 @@
 import mongoose, { mongo } from "mongoose";
 import Currency from "../../core/constants/currency_enum";
-import ProductImageModel from "../dtos/product_image_model";
+import ProductImageModel from "../dtos/product/product_image_model";
 import {
   IngredientModel,
   defaultIngredients,

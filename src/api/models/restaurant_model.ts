@@ -3,6 +3,15 @@ import { v4 as uuidv4 } from "uuid";
 import Roles from "../../core/constants/role_enum";
 import Currency from "../../core/constants/currency_enum";
 
+const SocialMediaSchema = new mongoose.Schema({
+  instagram: { type: String },
+  facebook: { type: String },
+  twitter: { type: String },
+  threads: { type: String },
+  whatsapp: { type: String },
+  website: { type: String },
+});
+
 const RestaurantSchema = new mongoose.Schema({
   _id: { type: String, default: uuidv4 },
   role: {
@@ -51,6 +60,17 @@ const RestaurantSchema = new mongoose.Schema({
     type: String,
     enum: Currency,
     default: Currency.TL,
+  },
+  socialMedias: {
+    type: SocialMediaSchema,
+    default: {
+      instagram: null,
+      facebook: null,
+      twitter: null,
+      threads: null,
+      whatsapp: null,
+      website: null,
+    },
   },
 });
 

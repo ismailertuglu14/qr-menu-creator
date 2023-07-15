@@ -6,7 +6,6 @@ import Restaurant from "../models/restaurant_model";
 import RestaurantCredential from "../models/restaurant_credential_model";
 import UnauthorizedException from "../../core/exceptions/unauthorized_exception";
 
-import multer from "multer";
 // Response
 import BaseResponse from "../../core/response/base_response";
 import { ResponseStatus } from "../../core/constants/response_status_enum";
@@ -16,6 +15,7 @@ import upload from "../../core/storage/multer_storage";
 import StorageEnum from "../../core/constants/storage/storage_enum";
 import { uploadImage, deleteImage } from "../../core/storage/azure_storage";
 import { uploadFileRename } from "../../features/utils/file_helpers";
+import { addOrUpdateSocialMedia } from "../../api/_controllers/restaurant_controller";
 
 const router = Router();
 
@@ -103,5 +103,7 @@ router.post(
     }
   }
 );
+
+router.post("/social-media", authorizationMiddleware, addOrUpdateSocialMedia);
 
 export default router;

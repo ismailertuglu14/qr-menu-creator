@@ -43,11 +43,6 @@ const RestaurantSchema = new mongoose.Schema({
     default: null,
     required: false,
   },
-  bannerImage: {
-    type: String,
-    default: null,
-    required: false,
-  },
   isActive: {
     type: Boolean,
     default: true,

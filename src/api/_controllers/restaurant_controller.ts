@@ -36,6 +36,13 @@ async function getRestaurantInformation(req: Request, res: Response) {
     const restaurantCredential = await RestaurantCredential.findOne({
       _id: restaurantId,
     });
+    restaurant.profileImage =
+      restaurant.profileImage != null && restaurant.profileImage != ""
+        ? getFileNameWithUrl(
+            StorageEnum.RESTAURANT_PROFILE_IMAGE,
+            restaurant.profileImage
+          )
+        : null;
     restaurantDto = {
       ...restaurant.toObject(),
       email: restaurantCredential?.email,

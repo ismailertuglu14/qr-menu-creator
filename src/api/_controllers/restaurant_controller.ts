@@ -15,9 +15,39 @@ import { Request, Response, NextFunction } from "express";
 // Entities
 import ProductModel from "../models/product_model";
 import RestaurantModel from "../models/restaurant_model";
+import RestaurantCredential from "../models/restaurant_credential_model";
+import UnauthorizedException from "../../core/exceptions/unauthorized_exception";
 import NotFoundException from "../../core/exceptions/not_found_exception";
 
-export async function addOrUpdateSocialMedia(req: Request, res: Response) {
+async function getRestaurantInformation(req: Request, res: Response) {
+  try {
+    const { restaurantId } = req.body;
+    const restaurant = await RestaurantModel.findOne(
+      {
+        _id: restaurantId,
+      },
+      { role: 0, __v: 0 }
+    );
+
+    if (!restaurant) throw new UnauthorizedException("Invalid restaurant id");
+
+    let restaurantDto = {};
+
+    const restaurantCredential = await RestaurantCredential.findOne({
+      _id: restaurantId,
+    });
+    restaurantDto = {
+      ...restaurant.toObject(),
+      email: restaurantCredential?.email,
+      phone: restaurantCredential?.phone,
+    };
+
+    res.status(200).json(BaseResponse.success(restaurantDto));
+  } catch (error) {
+    res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+  }
+}
+async function addOrUpdateSocialMedia(req: Request, res: Response) {
   try {
     const {
       restaurantId,
@@ -34,15 +64,6 @@ export async function addOrUpdateSocialMedia(req: Request, res: Response) {
     });
 
     if (!restaurant) throw new NotFoundException("Restaurant not found");
-
-    const socialMedias = {
-      facebook,
-      twitter,
-      instagram,
-      website,
-      threads,
-      whatsapp,
-    };
 
     restaurant.socialMedias = {
       facebook: facebook ?? "",
@@ -64,3 +85,5 @@ export async function addOrUpdateSocialMedia(req: Request, res: Response) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }
 }
+
+export { getRestaurantInformation, addOrUpdateSocialMedia };

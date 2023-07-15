@@ -32,7 +32,6 @@ export default function authorizationMiddleware(
 
   req.body.restaurantId = restaurantId;
   req.body.role = getRoleFromToken(token);
-
   next();
 }
 function getRestaurantIdFromToken(token: string): string {

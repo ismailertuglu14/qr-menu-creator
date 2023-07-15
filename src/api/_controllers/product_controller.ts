@@ -80,6 +80,7 @@ export async function restaurantGetProducts(req: Request, res: Response) {
     const { categoryId } = req.body;
     let { isActive } = req.query;
     if (!isActive) isActive = "true";
+
     const products = await ProductModel.find(
       {
         categoryId,
@@ -95,6 +96,7 @@ export async function restaurantGetProducts(req: Request, res: Response) {
         isActive: 1,
       }
     );
+    console.log("p: ", products);
     products.forEach((product: any) =>
       product.images != null && product.images.length > 0
         ? (product.images = getFileNameWithUrl(

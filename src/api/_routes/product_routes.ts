@@ -27,9 +27,9 @@ import StorageEnum from "../../core/constants/storage/storage_enum";
 import { NutritionModel } from "../dtos/product/nutritions_model";
 
 const router = Router();
-router.get("/:id", customerGetProductById);
+router.get("/detail/:id", customerGetProductById);
 router.get(
-  "/restaurant/:id",
+  "/restaurant/detail/:id",
   authorizationMiddleware,
   restaurantGetProductById
 );

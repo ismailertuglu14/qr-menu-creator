@@ -204,6 +204,7 @@ async function updateRestaurantInformation(
   try {
     const {
       restaurantId,
+      name,
       email,
       countryCode,
       phoneNumber,
@@ -263,6 +264,7 @@ async function updateRestaurantInformation(
       );
     }
     const restaurantUpdateData = {
+      name: name !== undefined ? name : restaurant.name,
       location: {
         latitude:
           latitude !== undefined && latitude !== ""

@@ -8,7 +8,7 @@ import {
 import {
   NutritionModel,
   defaultNutritionTypes,
-} from "../../api/dtos/product/nutritions_model";
+} from "../dtos/product/nutritions_model";
 const productSchema = new mongoose.Schema({
   restaurantId: {
     type: String,

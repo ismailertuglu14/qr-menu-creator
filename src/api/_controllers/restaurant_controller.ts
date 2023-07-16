@@ -13,9 +13,9 @@ import {
 import { Request, Response, NextFunction } from "express";
 
 // Entities
-import ProductModel from "../models/product_model";
-import RestaurantModel from "../models/restaurant_model";
-import RestaurantCredential from "../models/restaurant_credential_model";
+import ProductModel from "../entities/product_model";
+import RestaurantModel from "../entities/restaurant_model";
+import RestaurantCredential from "../entities/restaurant_credential_model";
 import UnauthorizedException from "../../core/exceptions/unauthorized_exception";
 import NotFoundException from "../../core/exceptions/not_found_exception";
 import mongoose from "mongoose";

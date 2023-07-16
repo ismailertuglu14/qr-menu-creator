@@ -4,9 +4,9 @@ import { ResponseStatus } from "../../core/constants/response_status_enum";
 import NotFoundException from "../../core/exceptions/not_found_exception";
 
 // Entities
-import CategoryModel from "../models/category_model";
-import RestaurantModel from "../models/restaurant_model";
-import ProductModel from "../models/product_model";
+import CategoryModel from "../entities/category_model";
+import RestaurantModel from "../entities/restaurant_model";
+import ProductModel from "../entities/product_model";
 
 // Storage
 import upload from "../../core/storage/multer_storage";
@@ -16,7 +16,52 @@ import {
 } from "../../features/utils/file_helpers";
 import StorageEnum from "../../core/constants/storage/storage_enum";
 import { uploadImage } from "../../core/storage/azure_storage";
-export async function customerGetCategories(req: Request, res: Response) {
+
+async function relocateCategory(req: Request, res: Response) {
+  try {
+    const { restaurantId, categoryId, newPosition } = req.body;
+
+    const category = await CategoryModel.findOne({
+      _id: categoryId,
+    });
+
+    if (!category) throw new NotFoundException("Category not found");
+
+    //Between newPosition and oldPosition
+    const categories = await CategoryModel.find({
+      restaurantId,
+      position: {
+        $gte: newPosition,
+        $lt: category.position,
+      },
+    });
+
+    await CategoryModel.updateOne(
+      {
+        _id: categoryId,
+      },
+      {
+        position: newPosition,
+      }
+    );
+    categories.forEach(async (category) => {
+      await CategoryModel.updateOne(
+        {
+          _id: category._id,
+        },
+        {
+          position: category.position + 1,
+        }
+      );
+    });
+
+    res.status(200).json(BaseResponse.success(ResponseStatus.SUCCESS));
+  } catch (error) {
+    res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+  }
+}
+
+async function customerGetCategories(req: Request, res: Response) {
   try {
     const { menuId } = req.body;
     const categories = await CategoryModel.find(
@@ -72,7 +117,7 @@ export async function customerGetCategories(req: Request, res: Response) {
   }
 }
 
-export async function restaurantGetCategories(req: Request, res: Response) {
+async function restaurantGetCategories(req: Request, res: Response) {
   try {
     const { restaurantId, menuId } = req.body;
     let { isActive } = req.query;
@@ -151,8 +196,7 @@ export async function restaurantGetCategories(req: Request, res: Response) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }
 }
-export async function getRestaurantCategories(req: Request, res: Response) {}
-export async function createCategory(req: Request, res: Response) {
+async function createCategory(req: Request, res: Response) {
   try {
     const { restaurantId, menuId, name } = req.body;
     const restaurant = await RestaurantModel.findOne({ _id: restaurantId });
@@ -163,7 +207,6 @@ export async function createCategory(req: Request, res: Response) {
     let uploadedImagePath: string | null;
 
     if (req.file !== undefined) {
-      console.log("if girdi");
       imageName = uploadFileRename(req.file.originalname);
       uploadedImagePath = await uploadImage(
         StorageEnum.CATEGORY_IMAGES,
@@ -183,13 +226,8 @@ export async function createCategory(req: Request, res: Response) {
       position:
         maxPositionCategory != null ? maxPositionCategory?.position + 1 : 0,
     });
+
     category.image = uploadedImagePath;
-    // await MenuValidator.validate({
-    //   restaurantId,
-    //   templateId,
-    // }).catch((err) => {
-    //   throw new Error(err);
-    // });
 
     res
       .status(200)
@@ -202,7 +240,7 @@ export async function createCategory(req: Request, res: Response) {
       );
   }
 }
-export async function deleteCategory(req: Request, res: Response) {
+async function deleteCategory(req: Request, res: Response) {
   try {
     const { restaurantId, categoryId } = req.body;
 
@@ -225,3 +263,11 @@ export async function deleteCategory(req: Request, res: Response) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }
 }
+
+export {
+  relocateCategory,
+  customerGetCategories,
+  restaurantGetCategories,
+  createCategory,
+  deleteCategory,
+};

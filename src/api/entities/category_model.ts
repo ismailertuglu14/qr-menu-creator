@@ -25,6 +25,7 @@ const categorySchema = new mongoose.Schema({
   },
   position: {
     type: Number,
+    required: true,
   },
 });
 

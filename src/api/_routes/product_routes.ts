@@ -6,7 +6,7 @@ import authorizationMiddleware from "../../features/middlewares/authorization_mi
 // Storage
 import upload from "../../core/storage/multer_storage";
 // Models
-import ProductModel from "../models/product_model";
+import ProductModel from "../entities/product_model";
 
 // Response
 import BaseResponse from "../../core/response/base_response";

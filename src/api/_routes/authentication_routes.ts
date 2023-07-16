@@ -3,8 +3,8 @@ import { signInValidator } from "../../features/validators/signin_validator";
 import { signUpValidator } from "../../features/validators/signup_validator";
 
 // Models
-import ResturantCredential from "../models/restaurant_credential_model";
-import Restaurant from "../models/restaurant_model";
+import ResturantCredential from "../entities/restaurant_credential_model";
+import Restaurant from "../entities/restaurant_model";
 
 // Exceptions
 import UnauthorizedException from "../../core/exceptions/unauthorized_exception";

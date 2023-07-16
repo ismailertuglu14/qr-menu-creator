@@ -2,8 +2,8 @@ import { Router, Request, Response } from "express";
 
 import authorizationMiddleware from "../../features/middlewares/authorization_middleware";
 
-import Restaurant from "../models/restaurant_model";
-import RestaurantCredential from "../models/restaurant_credential_model";
+import Restaurant from "../entities/restaurant_model";
+import RestaurantCredential from "../entities/restaurant_credential_model";
 import UnauthorizedException from "../../core/exceptions/unauthorized_exception";
 
 // Response

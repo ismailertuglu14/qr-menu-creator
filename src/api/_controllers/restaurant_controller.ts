@@ -16,6 +16,8 @@ import { Request, Response, NextFunction } from "express";
 import ProductModel from "../entities/product_model";
 import RestaurantModel from "../entities/restaurant_model";
 import RestaurantCredential from "../entities/restaurant_credential_model";
+import CategoryModel from "../entities/category_model";
+import MenuModel from "../entities/menu_model";
 import UnauthorizedException from "../../core/exceptions/unauthorized_exception";
 import NotFoundException from "../../core/exceptions/not_found_exception";
 import mongoose from "mongoose";
@@ -138,6 +140,49 @@ async function deleteRestaurant(req: Request, res: Response) {
     );
 
     if (!updateResult) throw new NotFoundException("Restaurant not found");
+
+    const products = await ProductModel.find({
+      restaurantId: restaurantId,
+      isActive: true,
+    });
+
+    const productIds = products.map((product) => product._id);
+
+    await ProductModel.updateMany(
+      { _id: { $in: productIds } },
+      { $set: { isActive: false } },
+      { session }
+    );
+
+    // Delete images code here...
+
+    const categories = await CategoryModel.find({
+      restaurantId: restaurantId,
+      isActive: true,
+    });
+
+    const categoryIds = categories.map((category) => category._id);
+
+    await CategoryModel.updateMany(
+      { _id: { $in: categoryIds } },
+      { $set: { isActive: false } },
+      { session }
+    );
+
+    // Delete category images code here...
+
+    const menus = await MenuModel.find({
+      restaurantId: restaurantId,
+      isActive: true,
+    });
+
+    const menuIds = menus.map((menu) => menu._id);
+
+    await MenuModel.updateMany(
+      { _id: { $in: menuIds } },
+      { $set: { isActive: false } },
+      { session }
+    );
 
     await session.commitTransaction();
     session.endSession();

@@ -19,6 +19,7 @@ import {
   getRestaurantInformation,
   addOrUpdateSocialMedia,
   deleteRestaurant,
+  updateRestaurantInformation,
 } from "../../api/_controllers/restaurant_controller";
 
 const router = Router();
@@ -77,4 +78,10 @@ router.post(
 
 router.post("/social-media", authorizationMiddleware, addOrUpdateSocialMedia);
 router.post("/delete", authorizationMiddleware, deleteRestaurant);
+router.post(
+  "/update",
+  upload.single("image"),
+  authorizationMiddleware,
+  updateRestaurantInformation
+);
 export default router;

@@ -2,7 +2,9 @@ import { ResponseStatus } from "../../core/constants/response_status_enum";
 import StorageEnum from "../../core/constants/storage/storage_enum";
 import BaseResponse from "../../core/response/base_response";
 import {
+  deleteImage,
   deleteMultipleImage,
+  uploadImage,
   uploadMultipleImage,
 } from "../../core/storage/azure_storage";
 import {
@@ -193,4 +195,108 @@ async function deleteRestaurant(req: Request, res: Response) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }
 }
-export { getRestaurantInformation, addOrUpdateSocialMedia, deleteRestaurant };
+
+async function updateRestaurantInformation(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const {
+      restaurantId,
+      email,
+      countryCode,
+      phoneNumber,
+      latitude,
+      longitude,
+      currency,
+    } = req.body;
+    console.log(req.body);
+    const credential = await RestaurantCredential.findOne({
+      _id: restaurantId,
+      isActive: true,
+    });
+
+    if (!credential) throw new UnauthorizedException("Invalid restaurant id");
+
+    const updateCredentialData = {
+      email: email !== undefined && email !== "" ? email : credential.email,
+      phone: {
+        countryCode:
+          countryCode !== undefined && countryCode !== ""
+            ? countryCode
+            : credential.phone.countryCode,
+        phoneNumber:
+          phoneNumber !== undefined && phoneNumber !== ""
+            ? phoneNumber
+            : credential.phone.phoneNumber,
+      },
+    };
+
+    await RestaurantCredential.findOneAndUpdate(
+      {
+        _id: restaurantId,
+        isActive: true,
+      },
+      updateCredentialData
+    );
+
+    const restaurant = await RestaurantModel.findOne({
+      _id: restaurantId,
+      isActive: true,
+    });
+
+    let fileName = "";
+    if (req.file) {
+      if (restaurant.profileImage) {
+        // resim silinecek
+        await deleteImage(
+          StorageEnum.RESTAURANT_PROFILE_IMAGE,
+          restaurant.profileImage
+        );
+      }
+      fileName = uploadFileRename(req.file.originalname);
+      await uploadImage(
+        StorageEnum.RESTAURANT_PROFILE_IMAGE,
+        fileName,
+        req.file
+      );
+    }
+    const restaurantUpdateData = {
+      location: {
+        latitude:
+          latitude !== undefined && latitude !== ""
+            ? latitude
+            : restaurant.location.latitude,
+        longitude:
+          longitude !== undefined && longitude !== ""
+            ? longitude
+            : restaurant.location.longitude,
+      },
+      currency:
+        currency !== undefined && currency !== ""
+          ? currency
+          : restaurant.defaultCurrency,
+      profileImage: fileName !== "" ? fileName : restaurant.profileImage,
+    };
+
+    await RestaurantModel.findOneAndUpdate(
+      {
+        _id: restaurantId,
+        isActive: true,
+      },
+      restaurantUpdateData
+    );
+
+    res.status(200).json(BaseResponse.success(null, ResponseStatus.SUCCESS));
+  } catch (error) {
+    res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+  }
+}
+
+export {
+  getRestaurantInformation,
+  addOrUpdateSocialMedia,
+  deleteRestaurant,
+  updateRestaurantInformation,
+};

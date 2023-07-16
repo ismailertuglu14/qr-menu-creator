@@ -56,6 +56,10 @@ const RestaurantSchema = new mongoose.Schema({
     enum: Currency,
     default: Currency.TL,
   },
+  location: {
+    latitude: { type: Number, default: null },
+    longitude: { type: Number, default: null },
+  },
   socialMedias: {
     type: SocialMediaSchema,
     default: {

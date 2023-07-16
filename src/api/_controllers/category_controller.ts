@@ -74,6 +74,7 @@ async function customerGetCategories(req: Request, res: Response) {
         name: 1,
         description: 1,
         image: 1,
+        position: 1,
       }
     );
     categories.forEach(
@@ -85,6 +86,7 @@ async function customerGetCategories(req: Request, res: Response) {
           category.image
         ))
     );
+    categories.sort((a, b) => a.position - b.position);
     const categoryIds = categories.map((category) => category._id);
 
     const productCounts = await Promise.all(
@@ -108,6 +110,7 @@ async function customerGetCategories(req: Request, res: Response) {
         description: category.description,
         image: category.image,
         productCount: productCount?.count,
+        position: category.position,
       });
     });
 
@@ -136,6 +139,7 @@ async function restaurantGetCategories(req: Request, res: Response) {
           description: 1,
           image: 1,
           isActive: 1,
+          position: 1,
         }
       );
     } else {
@@ -151,10 +155,11 @@ async function restaurantGetCategories(req: Request, res: Response) {
           description: 1,
           image: 1,
           isActive: 1,
+          position: 1,
         }
       );
     }
-
+    categories.sort((a, b) => a.position - b.position);
     categories.forEach(
       (category: any) =>
         category.image !== null &&
@@ -188,6 +193,7 @@ async function restaurantGetCategories(req: Request, res: Response) {
         image: category.image,
         productCount: productCount?.count,
         isActive: category.isActive,
+        position: category.position,
       });
     });
 

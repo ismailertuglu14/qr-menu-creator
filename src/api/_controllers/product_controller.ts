@@ -35,6 +35,7 @@ export async function restaurantGetProductById(req: Request, res: Response) {
     const product = await ProductModel.findOne({ _id: id }, { __v: 0 }).orFail(
       new NotFoundException("Product not found")
     );
+
     res.status(200).json(BaseResponse.success(product));
   } catch (error) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
@@ -56,6 +57,7 @@ export async function customerGetProducts(req: Request, res: Response) {
         images: 1,
         price: 1,
         currency: 1,
+        createdDate: 1,
       }
     );
 
@@ -67,10 +69,20 @@ export async function customerGetProducts(req: Request, res: Response) {
           ))
         : null
     );
-
-    res
-      .status(200)
-      .json(BaseResponse.success(products, ResponseStatus.SUCCESS));
+    let dtos: Array<Object> = [];
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    products.forEach((product: any) => {
+      dtos.push({
+        id: product._id,
+        name: product.name,
+        description: product.description,
+        image: product.images,
+        price: product.price,
+        currency: product.currency,
+        isNew: product.createdDate > sevenDaysAgo,
+      });
+    });
+    res.status(200).json(BaseResponse.success(dtos, ResponseStatus.SUCCESS));
   } catch (error) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }
@@ -94,9 +106,9 @@ export async function restaurantGetProducts(req: Request, res: Response) {
         price: 1,
         currency: 1,
         isActive: 1,
+        createdDate: 1,
       }
     );
-    console.log("p: ", products);
     products.forEach((product: any) =>
       product.images != null && product.images.length > 0
         ? (product.images = getFileNameWithUrl(
@@ -106,9 +118,20 @@ export async function restaurantGetProducts(req: Request, res: Response) {
         : null
     );
 
-    res
-      .status(200)
-      .json(BaseResponse.success(products, ResponseStatus.SUCCESS));
+    let dtos: Array<Object> = [];
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    products.forEach((product: any) => {
+      dtos.push({
+        id: product._id,
+        name: product.name,
+        description: product.description,
+        image: product.images,
+        price: product.price,
+        currency: product.currency,
+        isNew: product.createdDate > sevenDaysAgo,
+      });
+    });
+    res.status(200).json(BaseResponse.success(dtos, ResponseStatus.SUCCESS));
   } catch (error) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }

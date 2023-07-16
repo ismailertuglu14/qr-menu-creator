@@ -264,7 +264,7 @@ async function updateRestaurantInformation(
       );
     }
     const restaurantUpdateData = {
-      name: name !== undefined ? name : restaurant.name,
+      name: name !== undefined && name !== "" ? name : restaurant.name,
       location: {
         latitude:
           latitude !== undefined && latitude !== ""

@@ -19,6 +19,10 @@ const RestaurantCredentialSchema = new mongoose.Schema({
       type: String,
     },
   },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 export default mongoose.model(

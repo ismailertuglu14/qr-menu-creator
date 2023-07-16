@@ -18,6 +18,8 @@ import RestaurantModel from "../models/restaurant_model";
 import RestaurantCredential from "../models/restaurant_credential_model";
 import UnauthorizedException from "../../core/exceptions/unauthorized_exception";
 import NotFoundException from "../../core/exceptions/not_found_exception";
+import mongoose from "mongoose";
+import BadRequestException from "../../core/exceptions/bad_request_exception";
 
 async function getRestaurantInformation(req: Request, res: Response) {
   try {
@@ -95,5 +97,42 @@ async function addOrUpdateSocialMedia(req: Request, res: Response) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }
 }
+async function deleteRestaurant(req: Request, res: Response) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-export { getRestaurantInformation, addOrUpdateSocialMedia };
+  try {
+    const { restaurantId } = req.body;
+    if (!restaurantId)
+      throw new BadRequestException("Restaurant id is required");
+    const updateResult = await RestaurantModel.findOneAndUpdate(
+      {
+        _id: restaurantId,
+        isActive: true,
+      },
+      { $set: { isActive: false } },
+      { session }
+    );
+
+    if (!updateResult) throw new NotFoundException("Restaurant not found");
+
+    await RestaurantCredential.findOneAndUpdate(
+      {
+        _id: restaurantId,
+        isActive: true,
+      },
+      {
+        $set: { isActive: false },
+      },
+      { session }
+    );
+    await session.commitTransaction();
+    session.endSession();
+    res.status(200).json(BaseResponse.success(null, ResponseStatus.SUCCESS));
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+  }
+}
+export { getRestaurantInformation, addOrUpdateSocialMedia, deleteRestaurant };

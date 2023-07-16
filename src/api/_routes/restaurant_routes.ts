@@ -18,6 +18,7 @@ import { uploadFileRename } from "../../features/utils/file_helpers";
 import {
   getRestaurantInformation,
   addOrUpdateSocialMedia,
+  deleteRestaurant,
 } from "../../api/_controllers/restaurant_controller";
 
 const router = Router();
@@ -75,5 +76,5 @@ router.post(
 );
 
 router.post("/social-media", authorizationMiddleware, addOrUpdateSocialMedia);
-
+router.post("/delete", authorizationMiddleware, deleteRestaurant);
 export default router;

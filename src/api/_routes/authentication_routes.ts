@@ -118,14 +118,14 @@ router.post("/signup", async (req: Request, res: Response) => {
       name: restaurantName,
     });
     var restaurantResponse = await Restaurant.create(restaurant);
+
+    const token = generateToken({
+      id: restauntCredentialResponse._id,
+      role: restaurant.role,
+    });
     return res
       .status(200)
-      .json(
-        BaseResponse.success(
-          { restauntCredentialResponse, restaurantResponse },
-          ResponseStatus.SUCCESS
-        )
-      );
+      .json(BaseResponse.success(token, ResponseStatus.SUCCESS));
   } catch (error) {
     return res
       .status(500)

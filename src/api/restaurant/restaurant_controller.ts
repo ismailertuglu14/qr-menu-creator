@@ -15,11 +15,11 @@ import {
 import { Request, Response, NextFunction } from "express";
 
 // Entities
-import ProductModel from "../entities/product_model";
-import RestaurantModel from "../entities/restaurant_model";
-import RestaurantCredential from "../entities/restaurant_credential_model";
-import CategoryModel from "../entities/category_model";
-import MenuModel from "../entities/menu_model";
+import ProductModel from "../product/product_model";
+import RestaurantModel from "./restaurant_model";
+import RestaurantCredential from "../authentication/restaurant_credential_model";
+import CategoryModel from "../category/category_model";
+import MenuModel from "../menu/menu_model";
 import UnauthorizedException from "../../core/exceptions/unauthorized_exception";
 import NotFoundException from "../../core/exceptions/not_found_exception";
 import mongoose from "mongoose";
@@ -195,7 +195,46 @@ async function deleteRestaurant(req: Request, res: Response) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }
 }
+async function changeResstaurantImage(req: Request, res: Response) {
+  try {
+    if (!req.file) {
+      return res
+        .status(400)
+        .send(
+          BaseResponse.fail("File is required", ResponseStatus.BAD_REQUEST)
+        );
+    }
+    const { restaurantId } = req.body;
 
+    const restaurant = await RestaurantModel.findOne({
+      _id: restaurantId,
+    });
+
+    if (restaurant.profileImage) {
+      // resim silinecek
+      await deleteImage(
+        StorageEnum.RESTAURANT_PROFILE_IMAGE,
+        restaurant.profileImage
+      );
+    }
+    const fileName = uploadFileRename(req.file.originalname);
+    await uploadImage(StorageEnum.RESTAURANT_PROFILE_IMAGE, fileName, req.file);
+    const fileUrl = `${process.env.AZURE_STORAGE_URL}/${StorageEnum.RESTAURANT_PROFILE_IMAGE}/${fileName}`;
+
+    await RestaurantModel.updateOne(
+      {
+        _id: restaurantId,
+      },
+      {
+        profileImage: fileName,
+      }
+    );
+    res.status(200).json(BaseResponse.success(fileUrl));
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+  }
+}
 async function updateRestaurantInformation(
   req: Request,
   res: Response,
@@ -301,4 +340,5 @@ export {
   addOrUpdateSocialMedia,
   deleteRestaurant,
   updateRestaurantInformation,
+  changeResstaurantImage,
 };

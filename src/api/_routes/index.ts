@@ -1,12 +1,12 @@
 import { Router } from "express";
 const router = Router();
 
-import AuthenticationRoutes from "./authentication_routes";
-import PlanRoutes from "./plan_routes";
-import RestaurantRoutes from "./restaurant_routes";
-import MenuRoutes from "./menu_routes";
-import CategoryRoutes from "./category_routes";
-import ProductRoutes from "./product_routes";
+import AuthenticationRoutes from "../authentication/authentication_routes";
+import PlanRoutes from "../plan/plan_routes";
+import RestaurantRoutes from "../restaurant/restaurant_routes";
+import MenuRoutes from "../menu/menu_routes";
+import CategoryRoutes from "../category/category_routes";
+import ProductRoutes from "../product/product_routes";
 
 router.use("/auth", AuthenticationRoutes);
 router.use("/plan", PlanRoutes);

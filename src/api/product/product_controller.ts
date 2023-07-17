@@ -12,9 +12,9 @@ import {
 import { Request, Response, NextFunction } from "express";
 
 // Entities
-import ProductModel from "../entities/product_model";
-import MenuModel from "../entities/menu_model";
-import CategoryModel from "../entities/category_model";
+import ProductModel from "./product_model";
+import MenuModel from "../menu/menu_model";
+import CategoryModel from "../category/category_model";
 import NotFoundException from "../../core/exceptions/not_found_exception";
 
 export async function customerGetProductById(req: Request, res: Response) {

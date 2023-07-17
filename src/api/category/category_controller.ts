@@ -4,9 +4,9 @@ import { ResponseStatus } from "../../core/constants/response_status_enum";
 import NotFoundException from "../../core/exceptions/not_found_exception";
 
 // Entities
-import CategoryModel from "../entities/category_model";
-import RestaurantModel from "../entities/restaurant_model";
-import ProductModel from "../entities/product_model";
+import CategoryModel from "./category_model";
+import RestaurantModel from "../restaurant/restaurant_model";
+import ProductModel from "../product/product_model";
 
 // Storage
 import upload from "../../core/storage/multer_storage";

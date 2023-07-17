@@ -15,11 +15,11 @@ import {
 import { Request, Response, NextFunction } from "express";
 
 // Entities
-import ProductModel from "../entities/product_model";
-import RestaurantModel from "../entities/restaurant_model";
-import RestaurantCredential from "../entities/restaurant_credential_model";
-import CategoryModel from "../entities/category_model";
-import MenuModel from "../entities/menu_model";
+import ProductModel from "../product/product_model";
+import RestaurantModel from "../restaurant/restaurant_model";
+import RestaurantCredential from "./restaurant_credential_model";
+import CategoryModel from "../category/category_model";
+import MenuModel from "../menu/menu_model";
 import UnauthorizedException from "../../core/exceptions/unauthorized_exception";
 import NotFoundException from "../../core/exceptions/not_found_exception";
 import mongoose from "mongoose";

@@ -1,8 +1,8 @@
 import { Router, Request, Response } from "express";
 import authorizationMiddleware from "../../features/middlewares/authorization_middleware";
-import MenuModel from "../entities/menu_model";
-import CategoryModel from "../entities/category_model";
-import ProductModel from "../entities/product_model";
+import MenuModel from "./menu_model";
+import CategoryModel from "../category/category_model";
+import ProductModel from "../product/product_model";
 import BaseResponse from "../../core/response/base_response";
 import { ResponseStatus } from "../../core/constants/response_status_enum";
 import MenuValidator from "../../features/validators/menu_validator";
@@ -116,8 +116,14 @@ router.post(
         throw new BadRequestException(err);
       });
 
-      menu.coverImage = imageUrl;
-      res.status(200).json(BaseResponse.success(menu, ResponseStatus.SUCCESS));
+      const dto = {
+        _id: menu._id,
+        name: menu.name,
+        templateId: menu.templateId,
+        restaurantId: menu.restaurantId,
+        coverImage: imageUrl,
+      };
+      res.status(200).json(BaseResponse.success(dto, ResponseStatus.SUCCESS));
     } catch (error) {
       res
         .status(500)

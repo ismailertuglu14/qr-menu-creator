@@ -9,7 +9,10 @@ import MenuValidator from "../../features/validators/menu_validator";
 import BadRequestException from "../../core/exceptions/bad_request_exception";
 import NotFoundException from "../../core/exceptions/not_found_exception";
 import upload from "../../core/storage/multer_storage";
-import { uploadFileRename } from "../../features/utils/file_helpers";
+import {
+  getFileNameWithUrl,
+  uploadFileRename,
+} from "../../features/utils/file_helpers";
 import { uploadImage } from "../../core/storage/azure_storage";
 import StorageEnum from "../../core/constants/storage/storage_enum";
 
@@ -28,6 +31,7 @@ router.get("/all", authorizationMiddleware, async (req, res, next) => {
         name: 1,
         templateId: 1,
         restaurantId: 1,
+        coverImage: 1,
       }
     );
     const menuIds = menus.map((menu) => menu._id);
@@ -66,6 +70,10 @@ router.get("/all", authorizationMiddleware, async (req, res, next) => {
         restaurantId: menu.restaurantId,
         productCount: productCount?.count,
         categoryCount: categoryCount.count,
+        coverImage:
+          menu.coverImage != null
+            ? getFileNameWithUrl(StorageEnum.MENU_COVER_IMAGES, menu.coverImage)
+            : null,
       });
     });
 
@@ -90,12 +98,8 @@ router.post(
     let imageUrl = undefined;
     if (req.file) {
       imageName = uploadFileRename(req.file.originalname);
-      await uploadImage(
-        StorageEnum.RESTAURANT_PROFILE_IMAGE,
-        imageName,
-        req.file
-      );
-      imageUrl = `${process.env.AZURE_STORAGE_URL}/${StorageEnum.RESTAURANT_PROFILE_IMAGE}/${imageName}`;
+      await uploadImage(StorageEnum.MENU_COVER_IMAGES, imageName, req.file);
+      imageUrl = `${process.env.AZURE_STORAGE_URL}/${StorageEnum.MENU_COVER_IMAGES}/${imageName}`;
     }
     try {
       const menu = await MenuModel.create({
@@ -118,7 +122,7 @@ router.post(
       res
         .status(500)
         .json(
-          BaseResponse.fail(error.message, ResponseStatus.INTERNAL_SERVER_ERROR)
+          BaseResponse.fail("asdasdas", ResponseStatus.INTERNAL_SERVER_ERROR)
         );
     }
   }

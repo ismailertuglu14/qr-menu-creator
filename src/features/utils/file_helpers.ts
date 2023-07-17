@@ -1,5 +1,10 @@
 import { get } from "mongoose";
 
+/**
+ *
+ * @param name image original name
+ * @returns new image name with date and extension (example: image-123123123.png)
+ */
 export function uploadFileRename(name: string): string {
   const splitted = name.split(".");
   const extension = splitted.pop();

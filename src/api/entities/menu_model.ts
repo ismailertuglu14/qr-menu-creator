@@ -30,6 +30,10 @@ const menuSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  coverImage: {
+    type: String,
+    default: null,
+  },
   // position: {
   //   type: Number,
   //   default: 0,

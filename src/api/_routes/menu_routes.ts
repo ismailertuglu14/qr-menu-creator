@@ -8,6 +8,11 @@ import { ResponseStatus } from "../../core/constants/response_status_enum";
 import MenuValidator from "../../features/validators/menu_validator";
 import BadRequestException from "../../core/exceptions/bad_request_exception";
 import NotFoundException from "../../core/exceptions/not_found_exception";
+import upload from "../../core/storage/multer_storage";
+import { uploadFileRename } from "../../features/utils/file_helpers";
+import { uploadImage } from "../../core/storage/azure_storage";
+import StorageEnum from "../../core/constants/storage/storage_enum";
+
 const router = Router();
 
 router.get("/all", authorizationMiddleware, async (req, res, next) => {
@@ -74,32 +79,50 @@ router.get("/all", authorizationMiddleware, async (req, res, next) => {
   }
 });
 
-router.post("/create", authorizationMiddleware, async (req, res, next) => {
-  const { restaurantId, templateId, name } = req.body;
+router.post(
+  "/create",
+  upload.single("image"),
+  authorizationMiddleware,
+  async (req, res, next) => {
+    const { restaurantId, templateId, name } = req.body;
 
-  try {
-    const menu = await MenuModel.create({
-      restaurantId,
-      templateId,
-      name,
-    });
-
-    await MenuValidator.validate({
-      restaurantId,
-      templateId,
-    }).catch((err) => {
-      throw new BadRequestException(err);
-    });
-
-    res.status(200).json(BaseResponse.success(menu, ResponseStatus.SUCCESS));
-  } catch (error) {
-    res
-      .status(500)
-      .json(
-        BaseResponse.fail(error.message, ResponseStatus.INTERNAL_SERVER_ERROR)
+    let imageName = undefined;
+    let imageUrl = undefined;
+    if (req.file) {
+      imageName = uploadFileRename(req.file.originalname);
+      await uploadImage(
+        StorageEnum.RESTAURANT_PROFILE_IMAGE,
+        imageName,
+        req.file
       );
+      imageUrl = `${process.env.AZURE_STORAGE_URL}/${StorageEnum.RESTAURANT_PROFILE_IMAGE}/${imageName}`;
+    }
+    try {
+      const menu = await MenuModel.create({
+        restaurantId,
+        templateId,
+        name,
+        coverImage: imageName,
+      });
+
+      await MenuValidator.validate({
+        restaurantId,
+        templateId,
+      }).catch((err) => {
+        throw new BadRequestException(err);
+      });
+
+      menu.coverImage = imageUrl;
+      res.status(200).json(BaseResponse.success(menu, ResponseStatus.SUCCESS));
+    } catch (error) {
+      res
+        .status(500)
+        .json(
+          BaseResponse.fail(error.message, ResponseStatus.INTERNAL_SERVER_ERROR)
+        );
+    }
   }
-});
+);
 
 router.post("/delete", authorizationMiddleware, async (req, res, next) => {
   try {

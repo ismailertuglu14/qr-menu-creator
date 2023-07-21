@@ -7,6 +7,7 @@ async function uploadImage(
   file: any
 ): Promise<string> {
   const containerClient = blobServiceClient.getContainerClient(containerName);
+
   if (!(await containerClient.exists())) {
     await containerClient.create();
   }

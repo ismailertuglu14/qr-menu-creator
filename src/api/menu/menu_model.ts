@@ -26,6 +26,11 @@ const menuSchema = new mongoose.Schema({
     default: getFormattedDate(),
     required: true,
   },
+  slug: {
+    type: String,
+    default: getFormattedDate(),
+    required: true,
+  },
   isActive: {
     type: Boolean,
     default: true,

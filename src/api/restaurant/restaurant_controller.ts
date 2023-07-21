@@ -1,12 +1,7 @@
 import { ResponseStatus } from "../../core/constants/response_status_enum";
 import StorageEnum from "../../core/constants/storage/storage_enum";
 import BaseResponse from "../../core/response/base_response";
-import {
-  deleteImage,
-  deleteMultipleImage,
-  uploadImage,
-  uploadMultipleImage,
-} from "../../core/storage/azure_storage";
+import { deleteImage, uploadImage } from "../../core/storage/azure_storage";
 import {
   getFileNameWithUrl,
   uploadFileRename,
@@ -235,11 +230,7 @@ async function changeResstaurantImage(req: Request, res: Response) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }
 }
-async function updateRestaurantInformation(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
+async function updateRestaurantInformation(req: Request, res: Response) {
   try {
     const {
       restaurantId,
@@ -251,25 +242,29 @@ async function updateRestaurantInformation(
       longitude,
       currency,
     } = req.body;
-    console.log(req.body);
-    const credential = await RestaurantCredential.findOne({
+
+    const restaurantCredential = await RestaurantCredential.findOne({
       _id: restaurantId,
       isActive: true,
     });
 
-    if (!credential) throw new UnauthorizedException("Invalid restaurant id");
+    if (!restaurantCredential)
+      throw new UnauthorizedException("Invalid restaurant id");
 
     const updateCredentialData = {
-      email: email !== undefined && email !== "" ? email : credential.email,
+      email:
+        email !== undefined && email !== ""
+          ? email
+          : restaurantCredential.email,
       phone: {
         countryCode:
           countryCode !== undefined && countryCode !== ""
             ? countryCode
-            : credential.phone.countryCode,
+            : restaurantCredential.phone.countryCode,
         phoneNumber:
           phoneNumber !== undefined && phoneNumber !== ""
             ? phoneNumber
-            : credential.phone.phoneNumber,
+            : restaurantCredential.phone.phoneNumber,
       },
     };
 
@@ -281,10 +276,13 @@ async function updateRestaurantInformation(
       updateCredentialData
     );
 
-    const restaurant = await RestaurantModel.findOne({
-      _id: restaurantId,
-      isActive: true,
-    });
+    const restaurant = await RestaurantModel.findOne(
+      {
+        _id: restaurantId,
+        isActive: true,
+      },
+      { __v: 0 }
+    );
 
     let fileName = "";
     if (req.file) {
@@ -314,7 +312,7 @@ async function updateRestaurantInformation(
             ? longitude
             : restaurant.location.longitude,
       },
-      currency:
+      defaultCurrency:
         currency !== undefined && currency !== ""
           ? currency
           : restaurant.defaultCurrency,
@@ -329,7 +327,15 @@ async function updateRestaurantInformation(
       restaurantUpdateData
     );
 
-    res.status(200).json(BaseResponse.success(null, ResponseStatus.SUCCESS));
+    const restaurantDto = {
+      ...restaurant.toObject(),
+      email: restaurantCredential?.email,
+      phone: restaurantCredential?.phone,
+    };
+
+    res
+      .status(200)
+      .json(BaseResponse.success(restaurantDto, ResponseStatus.SUCCESS));
   } catch (error) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }

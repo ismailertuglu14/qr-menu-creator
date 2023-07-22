@@ -18,7 +18,7 @@ import RestaurantCredential from "../authentication/restaurant_credential_model"
 import CategoryModel from "../category/category_model";
 import MenuModel from "../menu/menu_model";
 import PlanModel from "../plan/plan_model";
-
+import PurchasePlan from "../purchase/purchase_model";
 // Exceptions
 import UnauthorizedException from "../../core/exceptions/unauthorized_exception";
 import NotFoundException from "../../core/exceptions/not_found_exception";
@@ -53,18 +53,21 @@ async function getRestaurantInformation(req: Request, res: Response) {
       restaurant.profileImage = null;
     }
 
-    let plan = null;
+    let purchase = null;
     if (restaurant.currentPlanId != null && restaurant.currentPlanId != "") {
-      plan = await PlanModel.findOne({
-        _id: restaurant.currentPlanId,
-        isActive: true,
-      });
+      purchase = await PurchasePlan.findOne(
+        {
+          restaurantId,
+          isActive: true,
+        },
+        { _id: 0, __v: 0, paymentMethod: 0, paymentStatus: 0, restaurantId: 0 }
+      );
     }
     restaurantDto = {
       ...restaurant.toObject(),
       email: restaurantCredential?.email,
       phone: restaurantCredential?.phone,
-      plan,
+      purchase,
     };
 
     res.status(200).json(BaseResponse.success(restaurantDto));

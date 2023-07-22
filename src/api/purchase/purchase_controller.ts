@@ -54,9 +54,25 @@ async function purchasePlan(req: Request, res: Response) {
   try {
     const { restaurantId, period } = req.body;
     const { planId } = req.params;
+    const isAlreadySubscribed = await PurchaseModel.findOne({
+      restaurantId,
+      isActive: true,
+    });
+    if (isAlreadySubscribed) {
+      return res
+        .status(200)
+        .json(BaseResponse.fail("", ResponseStatus.ALREADY_SUBSCRIBED));
+    }
+
+    const plan = await PlanModel.findOne(
+      { _id: planId, isActive: true },
+      { __v: 0 }
+    );
+
+    if (!plan) throw new NotFoundException("Plan not found");
 
     const purchase = await PurchaseModel.create({
-      planId,
+      plan,
       restaurantId,
       purchaseDate: new Date(),
       expirationDate:
@@ -76,7 +92,7 @@ async function purchasePlan(req: Request, res: Response) {
 
     await RestaurantModel.findOneAndUpdate(
       { _id: restaurantId },
-      { planId: planId }
+      { planId: purchase._id }
     );
 
     res

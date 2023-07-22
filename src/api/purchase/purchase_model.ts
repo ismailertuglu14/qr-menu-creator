@@ -1,13 +1,52 @@
-import mongoose from "mongoose";
+import FeatureType from "../plan/feature_type";
+import mongoose, { Mongoose, mongo } from "mongoose";
 
 const Purchase = new mongoose.Schema({
-  planId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Plan",
+  plan: {
+    type: {
+      _id: String,
+      name: {
+        type: String,
+        required: true,
+      },
+      features: {
+        type: Array<FeatureType>,
+        required: true,
+        default: null,
+      },
+      monthlyPrice: {
+        type: Number,
+        required: true,
+        default: 0,
+      },
+      annuallyPrice: {
+        type: Number,
+        required: true,
+        default: 0,
+      },
+      monthlyDiscount: {
+        type: Number,
+        required: true,
+        default: 0,
+      },
+      annuallyDiscount: {
+        type: Number,
+        required: true,
+        default: 0,
+      },
+      maxMenuCount: {
+        type: Number,
+        required: true,
+      },
+      maxProductCount: {
+        type: Number,
+        required: true,
+      },
+    },
     required: true,
   },
   restaurantId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: "Restaurant",
     required: true,
   },
@@ -19,9 +58,9 @@ const Purchase = new mongoose.Schema({
     type: Date,
     required: true,
   },
-  status: {
-    type: String,
-    required: true,
+  isActive: {
+    type: Boolean,
+    default: true,
   },
   paymentMethod: {
     type: String,

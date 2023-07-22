@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import authorizationMiddleware from "../../features/middlewares/authorization_middleware";
 
 // Models
-import CategoryModel from "./category_model";
+import CategoryModel from "./models/category_model";
 // Response
 import BaseResponse from "../../core/response/base_response";
 
@@ -13,7 +13,6 @@ import {
   createCategory,
   deleteCategory,
   relocateCategory,
-  changePosition,
 } from "./category_controller";
 
 const router = Router();

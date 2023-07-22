@@ -15,8 +15,6 @@ app.use(express.static(path.join(__dirname, "..", "public")));
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// Add "/api/v1" prefix to all routes code
-
 app.use("/api/v1", Routes);
 
 app.listen(PORT, async () => {

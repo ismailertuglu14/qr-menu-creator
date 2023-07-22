@@ -13,52 +13,18 @@ import {
   createCategory,
   deleteCategory,
   relocateCategory,
+  changePosition,
 } from "./category_controller";
 
 const router = Router();
 router.put("/relocate", authorizationMiddleware, relocateCategory);
 router.get("/customer/all", customerGetCategories);
 router.get("/restaurant/all", authorizationMiddleware, restaurantGetCategories);
-
-// sonra bakılacak.
-router.put(
-  "/change-position",
-  authorizationMiddleware,
-  async (req: Request, res: Response) => {
-    try {
-      const { restaurantId, categoryId, newPosition } = req.body;
-
-      // find the greates position parameter category
-      const greatestPositionCategory = await CategoryModel.findOne({
-        restaurantId,
-      }).sort({ position: -1 });
-
-      // find the category to be changed
-      const category = await CategoryModel.findOne({
-        _id: categoryId,
-        restaurantId,
-      });
-
-      await CategoryModel.updateMany(
-        {
-          restaurantId,
-        },
-        {
-          $set: {
-            position: newPosition,
-          },
-        }
-      );
-    } catch (error) {
-      res.send(500).json(BaseResponse.fail(error.message, error.statusCode));
-    }
-  }
-);
+router.put("/change-position", authorizationMiddleware, changePosition);
 router.post(
   "/create",
   upload.single("image"),
   authorizationMiddleware,
-
   createCategory
 );
 

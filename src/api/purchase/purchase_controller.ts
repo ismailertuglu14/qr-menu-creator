@@ -75,6 +75,10 @@ async function purchasePlan(req: Request, res: Response) {
       restaurantId,
       purchaseDate: new Date(),
       periodType,
+      price:
+        periodType == PeriodType.MONTHLY
+          ? plan.monthlyPrice
+          : plan.annuallyPrice,
       expirationDate:
         periodType === PeriodType.MONTHLY
           ? new Date(Date.now() + ONE_MONTH)
@@ -90,10 +94,10 @@ async function purchasePlan(req: Request, res: Response) {
         .status(400)
         .json(BaseResponse.fail("Purchase failed", ResponseStatus.BAD_REQUEST));
     }
-
+    console.log("purchase created: ", purchase);
     await RestaurantModel.findOneAndUpdate(
       { _id: restaurantId },
-      { planId: purchase._id }
+      { currentPlanId: purchase._id }
     );
 
     res

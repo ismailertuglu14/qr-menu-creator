@@ -51,15 +51,19 @@ const productSchema = new mongoose.Schema({
   images: {
     type: Array<ProductImageModel>,
   },
-  isActive: {
-    type: Boolean,
-    default: true,
+  position: {
+    type: Number,
+    required: true,
   },
   createdDate: {
     type: Date,
   },
   updatedDate: {
     type: Date,
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
   },
 });
 

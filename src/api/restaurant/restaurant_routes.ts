@@ -1,18 +1,6 @@
-import { Router, Request, Response } from "express";
-
+import { Router } from "express";
 import authorizationMiddleware from "../../features/middlewares/authorization_middleware";
-
-import Restaurant from "./restaurant_model";
-
-// Response
-import BaseResponse from "../../core/response/base_response";
-import { ResponseStatus } from "../../core/constants/response_status_enum";
-
-//const upload = multer({ storage: storageFunction("restaurant-profile-image") });
 import upload from "../../core/storage/multer_storage";
-import StorageEnum from "../../core/constants/storage/storage_enum";
-import { uploadImage, deleteImage } from "../../core/storage/azure_storage";
-import { uploadFileRename } from "../../features/utils/file_helpers";
 import {
   getRestaurantInformation,
   addOrUpdateSocialMedia,
@@ -31,7 +19,6 @@ router.post(
   authorizationMiddleware,
   changeResstaurantImage
 );
-
 router.post("/social-media", authorizationMiddleware, addOrUpdateSocialMedia);
 router.post("/delete", authorizationMiddleware, deleteRestaurant);
 router.post(
@@ -40,4 +27,6 @@ router.post(
   authorizationMiddleware,
   updateRestaurantInformation
 );
+
+router.post("/verify-request", authorizationMiddleware);
 export default router;

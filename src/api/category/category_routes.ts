@@ -20,7 +20,6 @@ const router = Router();
 router.put("/relocate", authorizationMiddleware, relocateCategory);
 router.get("/customer/all", customerGetCategories);
 router.get("/restaurant/all", authorizationMiddleware, restaurantGetCategories);
-router.put("/change-position", authorizationMiddleware, changePosition);
 router.post(
   "/create",
   upload.single("image"),

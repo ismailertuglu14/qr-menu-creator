@@ -9,9 +9,10 @@ import BaseResponse from "../../core/response/base_response";
 import { ResponseStatus } from "../../core/constants/response_status_enum";
 
 import Roles from "../../core/constants/role_enum";
+import { getPlans, updatePlan } from "./plan_controller";
 
 const router = Router();
-
+router.get("/", authorizationMiddleware, getPlans);
 router.post(
   "/create",
   authorizationMiddleware,
@@ -25,7 +26,10 @@ router.post(
         annuallyPrice,
         monthlyDiscount,
         annuallyDiscount,
+        maxMenuCount,
+        maxProductCount,
       } = req.body;
+
       if (role !== Roles.ADMIN) {
         return res
           .status(401)
@@ -36,7 +40,8 @@ router.post(
             )
           );
       }
-
+      const maxPositionPlan = await Plan.findOne().sort({ position: -1 });
+      const position = maxPositionPlan ? maxPositionPlan.position + 1 : 1;
       const plan = new Plan({
         name,
         features,
@@ -44,14 +49,22 @@ router.post(
         annuallyPrice,
         monthlyDiscount,
         annuallyDiscount,
+        maxMenuCount,
+        maxProductCount,
+        position,
         isActive: true,
       });
+
       await plan.save();
-      return res.status(200).json(BaseResponse.success(null));
+      return res
+        .status(200)
+        .json(BaseResponse.success(plan, ResponseStatus.SUCCESS));
     } catch (e) {
       return res.status(400).json(BaseResponse.fail(e.message));
     }
   }
 );
+
+router.post("/update/:id", authorizationMiddleware, updatePlan);
 
 export default router;

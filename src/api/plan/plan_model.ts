@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import FeatureType from "./feature_type";
 
 const planSchema = new mongoose.Schema({
   name: {
@@ -6,7 +7,7 @@ const planSchema = new mongoose.Schema({
     required: true,
   },
   features: {
-    type: Array<string>,
+    type: Array<FeatureType>,
     required: true,
     default: null,
   },
@@ -29,6 +30,18 @@ const planSchema = new mongoose.Schema({
     type: Number,
     required: true,
     default: 0,
+  },
+  maxMenuCount: {
+    type: Number,
+    required: true,
+  },
+  maxProductCount: {
+    type: Number,
+    required: true,
+  },
+  position: {
+    type: Number,
+    required: true,
   },
   createdDate: {
     type: Date,

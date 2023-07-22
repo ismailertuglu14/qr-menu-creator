@@ -1,5 +1,6 @@
 import FeatureType from "../plan/feature_type";
 import mongoose, { Mongoose, mongo } from "mongoose";
+import PeriodType from "./models/period_tpe";
 
 const Purchase = new mongoose.Schema({
   plan: {
@@ -48,6 +49,15 @@ const Purchase = new mongoose.Schema({
   restaurantId: {
     type: String,
     ref: "Restaurant",
+    required: true,
+  },
+  periodType: {
+    type: String,
+    enum: PeriodType,
+    required: true,
+  },
+  price: {
+    type: Number,
     required: true,
   },
   purchaseDate: {

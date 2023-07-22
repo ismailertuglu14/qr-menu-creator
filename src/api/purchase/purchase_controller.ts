@@ -4,11 +4,6 @@ import mongoose from "mongoose";
 import BaseResponse from "../../core/response/base_response";
 import { ResponseStatus } from "../../core/constants/response_status_enum";
 
-import {
-  getFileNameWithUrl,
-  uploadFileRename,
-} from "../../features/utils/file_helpers";
-
 // Entities
 import ProductModel from "../product/product_model";
 import RestaurantModel from "../restaurant/restaurant_model";
@@ -21,6 +16,8 @@ import PurchaseModel from "./purchase_model";
 import UnauthorizedException from "../../core/exceptions/unauthorized_exception";
 import NotFoundException from "../../core/exceptions/not_found_exception";
 import BadRequestException from "../../core/exceptions/bad_request_exception";
+
+import PeriodType from "./models/period_tpe";
 
 const ONE_MONTH = 30 * 24 * 60 * 60 * 1000;
 const ONE_YEAR = ONE_MONTH * 12;
@@ -52,8 +49,10 @@ async function getLatestPurchases(req: Request, res: Response) {
 }
 async function purchasePlan(req: Request, res: Response) {
   try {
-    const { restaurantId, period } = req.body;
+    const { restaurantId } = req.body;
     const { planId } = req.params;
+    const { type } = req.query;
+    const periodType = type === "0" ? PeriodType.MONTHLY : PeriodType.ANNUALLY;
     const isAlreadySubscribed = await PurchaseModel.findOne({
       restaurantId,
       isActive: true,
@@ -75,10 +74,12 @@ async function purchasePlan(req: Request, res: Response) {
       plan,
       restaurantId,
       purchaseDate: new Date(),
+      periodType,
       expirationDate:
-        period === "month"
+        periodType === PeriodType.MONTHLY
           ? new Date(Date.now() + ONE_MONTH)
           : new Date(Date.now() + ONE_YEAR),
+
       status: "active",
       paymentMethod: "credit card",
       paymentStatus: "paid",

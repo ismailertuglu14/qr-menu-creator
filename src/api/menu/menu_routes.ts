@@ -12,7 +12,7 @@ import {
 const router = Router();
 
 // Get menu by slug on client side
-router.get("/:slug", getMenuBySlug);
+router.get("/get/:slug", getMenuBySlug);
 
 // List all menus of a restaurant
 router.get("/all", authorizationMiddleware, getAll);

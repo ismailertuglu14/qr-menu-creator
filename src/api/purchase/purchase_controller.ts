@@ -8,7 +8,7 @@ import { ResponseStatus } from "../../core/constants/response_status_enum";
 import ProductModel from "../product/product_model";
 import RestaurantModel from "../restaurant/restaurant_model";
 import RestaurantCredential from "../authentication/restaurant_credential_model";
-import CategoryModel from "../category/category_model";
+import CategoryModel from "../category/models/category_model";
 import MenuModel from "../menu/menu_model";
 import PlanModel from "../plan/plan_model";
 import PurchaseModel from "./purchase_model";

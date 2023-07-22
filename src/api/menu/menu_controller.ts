@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import MenuModel from "./menu_model";
-import CategoryModel from "../category/category_model";
+import CategoryModel from "../category/models/category_model";
 import ProductModel from "../product/product_model";
 import BaseResponse from "../../core/response/base_response";
 import { ResponseStatus } from "../../core/constants/response_status_enum";

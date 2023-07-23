@@ -185,13 +185,16 @@ async function createMenu(req: Request, res: Response) {
         }
       });
     }
-
+    const maxPositionMenu = await MenuModel.findOne({ restaurantId }).sort({
+      position: -1,
+    });
     const menu = await MenuModel.create({
       restaurantId,
       templateId,
       name,
       slug,
       coverImage: imageName,
+      position: maxPositionMenu ? maxPositionMenu.position + 1 : 0,
     });
 
     await MenuValidator.validate({
@@ -208,6 +211,7 @@ async function createMenu(req: Request, res: Response) {
       restaurantId: menu.restaurantId,
       coverImage: imageUrl,
       slug: menu.slug,
+      position: menu.position,
     };
     res.status(200).json(BaseResponse.success(dto, ResponseStatus.SUCCESS));
   } catch (error) {

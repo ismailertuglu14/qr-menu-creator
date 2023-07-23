@@ -39,11 +39,10 @@ const menuSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
-  // position: {
-  //   type: Number,
-  //   default: 0,
-  //   unique: true,
-  // },
+  position: {
+    type: Number,
+    required: true,
+  },
 });
 
 const Menu = mongoose.model("Menu", menuSchema);

@@ -105,6 +105,7 @@ async function getAll(req: Request, res: Response) {
         templateId: 1,
         restaurantId: 1,
         coverImage: 1,
+        isPublished: 1,
       }
     );
     const menuIds = menus.map((menu) => menu._id);
@@ -143,6 +144,7 @@ async function getAll(req: Request, res: Response) {
         restaurantId: menu.restaurantId,
         productCount: productCount?.count,
         categoryCount: categoryCount.count,
+        isPublished: menu.isPublished,
         coverImage:
           menu.coverImage != null
             ? getFileNameWithUrl(StorageEnum.MENU_COVER_IMAGES, menu.coverImage)

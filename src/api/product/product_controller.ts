@@ -16,8 +16,9 @@ import ProductModel from "./product_model";
 import MenuModel from "../menu/menu_model";
 import CategoryModel from "../category/models/category_model";
 import NotFoundException from "../../core/exceptions/not_found_exception";
+import { AllergenModel, defaultAllergenTypes } from "./models/allergen_model";
 
-export async function customerGetProductById(req: Request, res: Response) {
+async function customerGetProductById(req: Request, res: Response) {
   try {
     const { id } = req.params;
     const product = await ProductModel.findOne(
@@ -29,7 +30,7 @@ export async function customerGetProductById(req: Request, res: Response) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }
 }
-export async function restaurantGetProductById(req: Request, res: Response) {
+async function restaurantGetProductById(req: Request, res: Response) {
   try {
     const { id } = req.params;
     const product = await ProductModel.findOne({ _id: id }, { __v: 0 }).orFail(
@@ -42,7 +43,7 @@ export async function restaurantGetProductById(req: Request, res: Response) {
   }
 }
 
-export async function customerGetProducts(req: Request, res: Response) {
+async function customerGetProducts(req: Request, res: Response) {
   try {
     const { categoryId } = req.body;
     const products = await ProductModel.find(
@@ -87,7 +88,7 @@ export async function customerGetProducts(req: Request, res: Response) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }
 }
-export async function restaurantGetProducts(req: Request, res: Response) {
+async function restaurantGetProducts(req: Request, res: Response) {
   try {
     const { categoryId } = req.body;
     let { isActive } = req.query;
@@ -136,11 +137,7 @@ export async function restaurantGetProducts(req: Request, res: Response) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }
 }
-export async function createProduct(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
+async function createProduct(req: Request, res: Response, next: NextFunction) {
   try {
     const {
       restaurantId,
@@ -148,7 +145,7 @@ export async function createProduct(
       categoryId,
       name,
       description,
-      ingredients,
+      //ingredients,
       allergens,
       nutritions,
       price,
@@ -183,8 +180,20 @@ export async function createProduct(
       productImages
     );
 
-    var ingredientsList = JSON.parse(ingredients);
+    //var ingredientsList = JSON.parse(ingredients);
     var nutritionList = JSON.parse(nutritions);
+    var allergensList: AllergenModel[] = JSON.parse(allergens);
+
+    allergensList = defaultAllergenTypes.map((allergen) => {
+      var allergenItem = allergensList.find(
+        (item) => item.name === allergen.name
+      );
+      if (allergenItem) {
+        return allergenItem;
+      } else {
+        return allergen;
+      }
+    });
 
     const product = await ProductModel.create({
       restaurantId,
@@ -192,9 +201,9 @@ export async function createProduct(
       categoryId,
       name,
       description,
-      ingredients: ingredientsList,
+      // ingredients: ingredientsList,
       nutritions: nutritionList,
-      allergens,
+      allergens: allergensList,
       price,
       currency,
       images: imageNames,
@@ -211,7 +220,7 @@ export async function createProduct(
       );
   }
 }
-export async function updateProduct(req: Request, res: Response) {
+async function updateProduct(req: Request, res: Response) {
   try {
     const {
       restaurantId,
@@ -286,7 +295,7 @@ export async function updateProduct(req: Request, res: Response) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }
 }
-export async function deleteProduct(req: Request, res: Response) {
+async function deleteProduct(req: Request, res: Response) {
   try {
     const { restaurantId, productId } = req.body;
 
@@ -316,3 +325,13 @@ type imageType = {
   mimetype: string;
 };
 interface images extends imageType {}
+
+export {
+  customerGetProductById,
+  restaurantGetProductById,
+  customerGetProducts,
+  restaurantGetProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+};

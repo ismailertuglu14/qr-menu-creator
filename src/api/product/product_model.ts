@@ -9,6 +9,7 @@ import {
   NutritionModel,
   defaultNutritionTypes,
 } from "../dtos/product/nutritions_model";
+import { AllergenModel, defaultAllergenTypes } from "./models/allergen_model";
 const productSchema = new mongoose.Schema({
   restaurantId: {
     type: String,
@@ -29,16 +30,17 @@ const productSchema = new mongoose.Schema({
   description: {
     type: String,
   },
-  ingredients: {
-    type: Array<IngredientModel>,
-    default: defaultIngredients,
-  },
+  // ingredients: {
+  //   type: Array<IngredientModel>,
+  //   default: defaultIngredients,
+  // },
   nutritions: {
     type: Array<NutritionModel>,
     default: defaultNutritionTypes,
   },
   allergens: {
-    type: String,
+    type: Array<AllergenModel>,
+    default: defaultAllergenTypes,
   },
   price: {
     type: Number,
@@ -51,10 +53,7 @@ const productSchema = new mongoose.Schema({
   images: {
     type: Array<ProductImageModel>,
   },
-  position: {
-    type: Number,
-    required: true,
-  },
+
   createdDate: {
     type: Date,
   },

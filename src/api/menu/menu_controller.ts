@@ -242,5 +242,82 @@ async function deleteMenu(req: Request, res: Response) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }
 }
+async function relocateMenu(req: Request, res: Response) {
+  try {
+    const { restaurantId, menuId, newPosition } = req.body;
 
-export { getMenuBySlug, getAll, createMenu, deleteMenu };
+    const menu = await MenuModel.findOne({
+      _id: menuId,
+    });
+
+    const menus = await MenuModel.find({
+      restaurantId,
+      position: {
+        $gte: newPosition,
+        $lt: menu.position,
+      },
+    });
+
+    await MenuModel.updateOne(
+      {
+        _id: menuId,
+      },
+      {
+        position: newPosition,
+      }
+    );
+
+    menus.forEach(async (menu) => {
+      await MenuModel.updateOne(
+        {
+          _id: menu._id,
+        },
+        {
+          position: menu.position + 1,
+        }
+      );
+    });
+
+    res.status(200).json(BaseResponse.success(menus, ResponseStatus.SUCCESS));
+  } catch (error) {
+    res
+      .status(500)
+      .json(
+        BaseResponse.fail(error.message, ResponseStatus.INTERNAL_SERVER_ERROR)
+      );
+  }
+}
+async function publishMenu(req: Request, res: Response) {
+  try {
+    const { restaurantId } = req.body;
+    const { menuId } = req.params;
+
+    const menu = await MenuModel.findOne({
+      _id: menuId,
+      restaurantId,
+      isActive: true,
+    });
+
+    if (!menu) throw new NotFoundException("Menu not found");
+
+    menu.isPublished = menu.isPublished ? false : true;
+
+    await menu.save();
+
+    res.status(200).json(BaseResponse.success(true, ResponseStatus.SUCCESS));
+  } catch (error) {
+    res
+      .status(500)
+      .json(
+        BaseResponse.fail(error.message, ResponseStatus.INTERNAL_SERVER_ERROR)
+      );
+  }
+}
+export {
+  getMenuBySlug,
+  getAll,
+  createMenu,
+  deleteMenu,
+  relocateMenu,
+  publishMenu,
+};

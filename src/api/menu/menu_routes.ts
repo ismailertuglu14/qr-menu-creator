@@ -7,6 +7,7 @@ import {
   deleteMenu,
   getAll,
   getMenuBySlug,
+  publishMenu,
 } from "./menu_controller";
 
 const router = Router();
@@ -25,4 +26,6 @@ router.post(
 );
 
 router.post("/delete", authorizationMiddleware, deleteMenu);
+router.post("/relocate/:menuId", authorizationMiddleware);
+router.post("/publish/:menuId", authorizationMiddleware, publishMenu);
 export default router;

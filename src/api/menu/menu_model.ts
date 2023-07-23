@@ -31,10 +31,7 @@ const menuSchema = new mongoose.Schema({
     default: getFormattedDate(),
     required: true,
   },
-  isActive: {
-    type: Boolean,
-    default: true,
-  },
+
   coverImage: {
     type: String,
     default: null,
@@ -42,6 +39,14 @@ const menuSchema = new mongoose.Schema({
   position: {
     type: Number,
     required: true,
+  },
+  isPublished: {
+    type: Boolean,
+    default: false,
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
   },
 });
 

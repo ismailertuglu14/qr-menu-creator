@@ -304,7 +304,9 @@ async function publishMenu(req: Request, res: Response) {
 
     await menu.save();
 
-    res.status(200).json(BaseResponse.success(true, ResponseStatus.SUCCESS));
+    res
+      .status(200)
+      .json(BaseResponse.success(menu.isPublished, ResponseStatus.SUCCESS));
   } catch (error) {
     res
       .status(500)

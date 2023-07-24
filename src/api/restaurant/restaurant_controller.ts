@@ -321,11 +321,11 @@ async function updateRestaurantInformation(req: Request, res: Response) {
       location: {
         latitude:
           latitude !== undefined && latitude !== ""
-            ? latitude
+            ? Number.parseFloat(latitude)
             : restaurant.location.latitude,
         longitude:
           longitude !== undefined && longitude !== ""
-            ? longitude
+            ? Number.parseFloat(longitude)
             : restaurant.location.longitude,
       },
       defaultCurrency:

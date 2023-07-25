@@ -137,27 +137,25 @@ async function signup(req: Request, res: Response) {
   }
 }
 async function changePassword(req: Request, res: Response) {
-  async (req: Request, res: Response) => {
-    try {
-      const { restaurantId, oldPassword, newPassword } = req.body;
+  try {
+    const { restaurantId, oldPassword, newPassword } = req.body;
 
-      const restaurant = await ResturantCredential.findOne({
-        _id: restaurantId,
-      });
+    const restaurant = await ResturantCredential.findOne({
+      _id: restaurantId,
+    });
 
-      if (!restaurant) throw new NotFoundException("Restaurant not found");
+    if (!restaurant) throw new NotFoundException("Restaurant not found");
 
-      if (!(await comparePassword(oldPassword, restaurant.hashedPassword)))
-        throw new UnauthorizedException("Invalid password");
+    if (!(await comparePassword(oldPassword, restaurant.hashedPassword)))
+      throw new UnauthorizedException("Invalid password");
 
-      restaurant.hashedPassword = await hashPassword(newPassword);
-      await restaurant.save();
+    restaurant.hashedPassword = await hashPassword(newPassword);
+    await restaurant.save();
 
-      return res.status(200).json(BaseResponse.success("Password changed"));
-    } catch (error) {
-      res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
-    }
-  };
+    return res.status(200).json(BaseResponse.success("Password changed"));
+  } catch (error) {
+    res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+  }
 }
 /**
  * @param phoneNumber

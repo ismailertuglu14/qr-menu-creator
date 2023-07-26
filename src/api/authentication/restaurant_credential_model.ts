@@ -23,6 +23,14 @@ const RestaurantCredentialSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  resetPasswordCode: {
+    type: String,
+    default: null,
+  },
+  resetPasswordCodeExpiry: {
+    type: Date,
+    default: null,
+  },
 });
 
 export default mongoose.model(

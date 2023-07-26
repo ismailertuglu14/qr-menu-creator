@@ -20,10 +20,19 @@ import {
   comparePassword,
 } from "../../features/utils/hash_password";
 
+import NodeMailer from "nodemailer";
+
 // Dtos
 import TokenDto from "../dtos/token_dto";
 import authorizationMiddleware from "../../features/middlewares/authorization_middleware";
 import NotFoundException from "../../core/exceptions/not_found_exception";
+
+import * as queryString from "querystring";
+import BadRequestException from "../../core/exceptions/bad_request_exception";
+import { generate6DigitCode } from "../../features/utils/number_helpers";
+import OTPExpiredException from "../../core/exceptions/otp_expired_exception";
+import OTPIncorrectException from "../../core/exceptions/otp_incorrect_exception";
+import { mailHelper, passwordRequestMailWithOTP } from "./utils/mail_helper";
 
 async function signin(req: Request, res: Response) {
   try {
@@ -136,6 +145,120 @@ async function signup(req: Request, res: Response) {
       );
   }
 }
+async function googleLogin(req: Request, res: Response) {
+  try {
+    const stringifiedParams = queryString.stringify({
+      client_id: process.env.CLIENT_ID,
+      redirect_uri: "https://www.example.com/authenticate/google",
+      scope: [
+        "https://www.googleapis.com/auth/userinfo.email",
+        "https://www.googleapis.com/auth/userinfo.profile",
+      ].join(" "), // space seperated string
+      response_type: "code",
+      access_type: "offline",
+      prompt: "consent",
+    });
+
+    const googleLoginUrl = `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`;
+
+    return res
+      .status(200)
+      .json(BaseResponse.success("", ResponseStatus.SUCCESS));
+  } catch (error) {
+    res
+      .status(500)
+      .json(
+        BaseResponse.fail(error.message, ResponseStatus.INTERNAL_SERVER_ERROR)
+      );
+  }
+}
+
+/**
+ * This is the first step of resetPassword.
+ */
+async function resetPassword(req: Request, res: Response) {
+  try {
+    const { to } = req.body;
+    if (!to) throw new BadRequestException("Email is required");
+    const restaurant = await ResturantCredential.findOne({
+      email: to,
+      isActive: true,
+    });
+
+    if (!restaurant) throw new NotFoundException("Restaurant not found");
+
+    const transporter = NodeMailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number.parseInt(process.env.SMTP_PORT),
+      secure: true,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD,
+      },
+    });
+
+    const tenMinuteLater = new Date(new Date().getTime() + 10 * 60000);
+
+    restaurant.resetPasswordCode = generate6DigitCode().toString();
+    restaurant.resetPasswordCodeExpiry = new Date(tenMinuteLater);
+    const info = await transporter.sendMail({
+      html: mailHelper(
+        to,
+        "Password Reset",
+        passwordRequestMailWithOTP(restaurant.resetPasswordCode)
+      ),
+      from: process.env.SMTP_USER,
+      to: to,
+      subject: "Hello ✔",
+    });
+
+    await restaurant.save();
+    res.status(200).json(BaseResponse.success(ResponseStatus.SUCCESS));
+  } catch (error) {
+    res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+  }
+}
+/**
+ * @description This is the second step of resetPassword.
+ * @description Check if OTP is valid or not after resetPassword request sent.
+ *
+ * @returns {number} 404 - ResponseStatus.NotFound Restaurant not found.
+ * @returns {number} 1008  - ResponseStatus.OTP_EXPIRED if OTP is expired.
+ * @returns {number } 1009 - ResponseStatus.OTP_INCORRECT if OTP is incorrect.
+ * @returns {number} true & 200 - ResponseStatus.SUCCESS if OTP is valid.
+ * @returns {number} 500 - ResponseStatus.INTERNAL_SERVER_ERROR if any error occurs.
+ */
+async function checkOTP(req: Request, res: Response) {
+  try {
+    const { email, otp } = req.body;
+    const restaurant = await ResturantCredential.findOne({
+      email: email,
+    });
+    if (!restaurant) throw new NotFoundException("Restaurant not found");
+    if (!restaurant.resetPasswordCode)
+      throw new NotFoundException("OTP not found");
+
+    if (restaurant.resetPasswordCodeExpiry < new Date()) {
+      restaurant.resetPasswordCode = null;
+      restaurant.resetPasswordCodeExpiry = null;
+      await restaurant.save();
+      throw new OTPExpiredException("OTP expired");
+    }
+
+    if (restaurant.resetPasswordCode !== otp)
+      throw new OTPIncorrectException("OTP incorrect");
+
+    restaurant.resetPasswordCode = null;
+    restaurant.resetPasswordCodeExpiry = null;
+    await restaurant.save();
+    res.status(200).json(BaseResponse.success(true, ResponseStatus.SUCCESS));
+  } catch (error) {
+    res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+  }
+}
+async function generateResetPasswordToken() {
+  // generate 64 bit token
+}
 async function changePassword(req: Request, res: Response) {
   try {
     const { restaurantId, oldPassword, newPassword } = req.body;
@@ -179,4 +302,4 @@ async function checkIsUserUnique(
   return ResponseStatus.INTERNAL_SERVER_ERROR;
 }
 
-export { signin, signup, changePassword };
+export { signin, signup, changePassword, resetPassword, checkOTP };

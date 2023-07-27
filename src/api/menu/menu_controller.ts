@@ -14,6 +14,10 @@ import {
 import { uploadImage } from "../../core/storage/azure_storage";
 import StorageEnum from "../../core/constants/storage/storage_enum";
 import PurchaseModel from "../../api/purchase/purchase_model";
+
+// dtos
+import AllMenusType from "./models/all_menus_dto";
+
 async function getMenuBySlug(req: Request, res: Response) {
   try {
     const { slug } = req.params;
@@ -133,8 +137,8 @@ async function getAll(req: Request, res: Response) {
       restaurantId,
       isActive: true,
     });
-    let dtos: any = {
-      remaniningMenus: purchase.plan.maxMenuCount - menus.length,
+    let dtos: AllMenusType = {
+      remainingMenus: purchase.plan.maxMenuCount - menus.length,
       menus: [],
     };
     menus.forEach((menu) => {
@@ -144,20 +148,21 @@ async function getAll(req: Request, res: Response) {
       const categoryCount = categoryCounts.find(
         (categoryCount) => categoryCount.menuId === menu._id
       );
+
       dtos.menus.push({
-        _id: menu._id,
+        _id: menu._id.toString(),
         name: menu.name,
         templateId: menu.templateId,
         restaurantId: menu.restaurantId,
         productCount: productCount?.count,
         categoryCount: categoryCount.count,
-        remainingProductCount:
-          purchase.plan.maxProductCount - productCount?.count,
+        remainingProductCount: 0,
         isPublished: menu.isPublished,
         coverImage:
           menu.coverImage != null
             ? getFileNameWithUrl(StorageEnum.MENU_COVER_IMAGES, menu.coverImage)
             : null,
+        position: menu.position,
       });
     });
 

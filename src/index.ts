@@ -15,10 +15,10 @@ app.use(express.static(path.join(__dirname, "..", "public")));
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.use("/api/v1", Routes);
+app.use("/api", Routes);
 
 app.listen(PORT, async () => {
   await connectMongoDb();
 
-  console.log("Example app listening on port ", PORT);
+  console.log("App listening on port ", PORT);
 });

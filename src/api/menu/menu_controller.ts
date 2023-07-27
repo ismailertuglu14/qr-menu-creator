@@ -137,10 +137,12 @@ async function getAll(req: Request, res: Response) {
       restaurantId,
       isActive: true,
     });
+
     let dtos: AllMenusType = {
       remainingMenus: purchase.plan.maxMenuCount - menus.length,
       menus: [],
     };
+
     menus.forEach((menu) => {
       const productCount = productCounts.find(
         (productCount) => productCount.menuId === menu._id
@@ -177,17 +179,33 @@ async function getAll(req: Request, res: Response) {
   }
 }
 
+/**
+ * @returns {number}
+ */
 async function createMenu(req: Request, res: Response) {
-  const { restaurantId, templateId, name } = req.body;
-
-  let imageName = undefined;
-  let imageUrl = undefined;
-  if (req.file) {
-    imageName = uploadFileRename(req.file.originalname);
-    await uploadImage(StorageEnum.MENU_COVER_IMAGES, imageName, req.file);
-    imageUrl = getFileNameWithUrl(StorageEnum.MENU_COVER_IMAGES, imageName);
-  }
   try {
+    const { restaurantId, templateId, name } = req.body;
+    // check menu count less than max menu count
+    const menuCount = await MenuModel.countDocuments({
+      restaurantId,
+      isActive: true,
+    });
+
+    const purchase = await PurchaseModel.findOne({
+      restaurantId,
+      isActive: true,
+    });
+
+    if (menuCount >= purchase.plan.maxMenuCount)
+      return res
+        .status(400)
+        .json(
+          BaseResponse.fail(
+            "Menu Count Exceeded",
+            ResponseStatus.MENU_COUNT_EXCEEDED
+          )
+        );
+
     // create menu but check slug is unique
     let tempSlug = name.toLowerCase().replace(/ /g, "-");
     let slug = tempSlug;
@@ -202,6 +220,15 @@ async function createMenu(req: Request, res: Response) {
         }
       });
     }
+
+    let imageName = undefined;
+    let imageUrl = undefined;
+    if (req.file) {
+      imageName = uploadFileRename(req.file.originalname);
+      await uploadImage(StorageEnum.MENU_COVER_IMAGES, imageName, req.file);
+      imageUrl = getFileNameWithUrl(StorageEnum.MENU_COVER_IMAGES, imageName);
+    }
+
     const maxPositionMenu = await MenuModel.findOne({ restaurantId }).sort({
       position: -1,
     });

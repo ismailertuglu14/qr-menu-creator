@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import FeatureType from "./feature_type";
+import PlanType from "./plan_enum";
 
 const planSchema = new mongoose.Schema({
   name: {

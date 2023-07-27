@@ -13,7 +13,7 @@ import {
 } from "../../features/utils/file_helpers";
 import { uploadImage } from "../../core/storage/azure_storage";
 import StorageEnum from "../../core/constants/storage/storage_enum";
-
+import PurchaseModel from "../../api/purchase/purchase_model";
 async function getMenuBySlug(req: Request, res: Response) {
   try {
     const { slug } = req.params;
@@ -129,7 +129,14 @@ async function getAll(req: Request, res: Response) {
       })
     );
 
-    let dtos: Object[] = [];
+    const purchase = await PurchaseModel.findOne({
+      restaurantId,
+      isActive: true,
+    });
+    let dtos: any = {
+      remaniningMenus: purchase.plan.maxMenuCount - menus.length,
+      menus: [],
+    };
     menus.forEach((menu) => {
       const productCount = productCounts.find(
         (productCount) => productCount.menuId === menu._id
@@ -137,13 +144,15 @@ async function getAll(req: Request, res: Response) {
       const categoryCount = categoryCounts.find(
         (categoryCount) => categoryCount.menuId === menu._id
       );
-      dtos.push({
+      dtos.menus.push({
         _id: menu._id,
         name: menu.name,
         templateId: menu.templateId,
         restaurantId: menu.restaurantId,
         productCount: productCount?.count,
         categoryCount: categoryCount.count,
+        remainingProductCount:
+          purchase.plan.maxProductCount - productCount?.count,
         isPublished: menu.isPublished,
         coverImage:
           menu.coverImage != null

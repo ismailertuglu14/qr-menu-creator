@@ -53,7 +53,7 @@ async function getRestaurantInformation(req: Request, res: Response) {
       restaurant.profileImage = null;
     }
 
-    let purchase = null;
+    let purchase: any = null;
     if (restaurant.currentPlanId != null && restaurant.currentPlanId != "") {
       purchase = await PurchasePlan.findOne(
         {
@@ -63,6 +63,7 @@ async function getRestaurantInformation(req: Request, res: Response) {
         { _id: 0, __v: 0, paymentMethod: 0, paymentStatus: 0, restaurantId: 0 }
       );
     }
+
     restaurantDto = {
       ...restaurant.toObject(),
       email: restaurantCredential?.email,

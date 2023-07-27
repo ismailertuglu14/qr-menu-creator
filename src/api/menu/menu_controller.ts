@@ -156,7 +156,8 @@ async function getAll(req: Request, res: Response) {
         restaurantId: menu.restaurantId,
         productCount: productCount?.count,
         categoryCount: categoryCount.count,
-        remainingProductCount: 0,
+        remainingProductCount:
+          purchase.plan.maxProductCount - productCount?.count,
         isPublished: menu.isPublished,
         coverImage:
           menu.coverImage != null

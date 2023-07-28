@@ -254,6 +254,7 @@ async function createMenu(req: Request, res: Response) {
       coverImage: imageUrl,
       slug: menu.slug,
       position: menu.position,
+      viewCount: 0,
     };
     res.status(200).json(BaseResponse.success(dto, ResponseStatus.SUCCESS));
   } catch (error) {

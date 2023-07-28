@@ -13,6 +13,7 @@ type AllMenusType = {
     categoryCount: number;
     productCount: number;
     remainingProductCount: number;
+    viewCount: number;
   }>;
 };
 

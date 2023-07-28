@@ -167,6 +167,7 @@ async function getAll(req: Request, res: Response) {
             ? getFileNameWithUrl(StorageEnum.MENU_COVER_IMAGES, menu.coverImage)
             : null,
         position: menu.position,
+        viewCount: 0,
       });
     });
 

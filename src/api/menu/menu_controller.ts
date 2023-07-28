@@ -112,6 +112,7 @@ async function getAll(req: Request, res: Response) {
         isPublished: 1,
       }
     );
+
     const menuIds = menus.map((menu) => menu._id);
 
     const productCounts = await Promise.all(
@@ -179,9 +180,6 @@ async function getAll(req: Request, res: Response) {
   }
 }
 
-/**
- * @returns {number}
- */
 async function createMenu(req: Request, res: Response) {
   try {
     const { restaurantId, templateId, name } = req.body;

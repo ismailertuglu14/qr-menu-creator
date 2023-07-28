@@ -5,6 +5,7 @@ import {
   changePassword,
   checkOTP,
   resetPassword,
+  resetPasswordRequest,
   signin,
   signup,
 } from "./authentication_controller";
@@ -16,9 +17,9 @@ router.post("/signup", signup);
 router.put("/change-password", authorizationMiddleware, changePassword);
 
 // This is the first step of the reset password process.
-router.post("/reset-password-request", resetPassword);
+router.post("/reset-password-request", resetPasswordRequest);
 // This is the second step of the reset password process.
 router.post("/check-otp", checkOTP);
 // This is the third step of the reset password process.
-router.post("/reset-password");
+router.post("/reset-password", resetPassword);
 export default router;

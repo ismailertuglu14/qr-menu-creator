@@ -14,11 +14,16 @@ import BaseResponse from "../../core/response/base_response";
 import { ResponseStatus } from "../../core/constants/response_status_enum";
 
 // Utils
-import { generateToken, verifyToken } from "../../features/utils/token_helper";
+import {
+  generateResetPasswordToken,
+  generateToken,
+  verifyToken,
+} from "../../features/utils/token_helper";
 import {
   hashPassword,
   comparePassword,
 } from "../../features/utils/hash_password";
+import bcrypt from "bcryptjs";
 
 import NodeMailer from "nodemailer";
 
@@ -176,7 +181,7 @@ async function googleLogin(req: Request, res: Response) {
 /**
  * This is the first step of resetPassword.
  */
-async function resetPassword(req: Request, res: Response) {
+async function resetPasswordRequest(req: Request, res: Response) {
   try {
     const { to } = req.body;
     if (!to) throw new BadRequestException("Email is required");
@@ -198,10 +203,15 @@ async function resetPassword(req: Request, res: Response) {
     });
 
     const tenMinuteLater = new Date(new Date().getTime() + 10 * 60000);
+    const oneHourLater = new Date(new Date().getTime() + 60 * 60000);
 
     restaurant.resetPasswordCode = generate6DigitCode().toString();
     restaurant.resetPasswordCodeExpiry = new Date(tenMinuteLater);
-    const info = await transporter.sendMail({
+
+    restaurant.resetPassswordToken = generateResetPasswordToken();
+    restaurant.resetPasswordTokenExpiry = new Date(oneHourLater);
+
+    await transporter.sendMail({
       html: mailHelper(
         to,
         "Password Reset",
@@ -213,7 +223,14 @@ async function resetPassword(req: Request, res: Response) {
     });
 
     await restaurant.save();
-    res.status(200).json(BaseResponse.success(ResponseStatus.SUCCESS));
+    res
+      .status(200)
+      .json(
+        BaseResponse.success(
+          restaurant.resetPassswordToken,
+          ResponseStatus.SUCCESS
+        )
+      );
   } catch (error) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }
@@ -230,11 +247,21 @@ async function resetPassword(req: Request, res: Response) {
  */
 async function checkOTP(req: Request, res: Response) {
   try {
-    const { email, otp } = req.body;
+    const { email, otp, token } = req.body;
     const restaurant = await ResturantCredential.findOne({
       email: email,
+      isActive: true,
     });
+
     if (!restaurant) throw new NotFoundException("Restaurant not found");
+
+    if (
+      token !== restaurant.resetPassswordToken ||
+      restaurant.resetPasswordTokenExpiry < new Date()
+    ) {
+      throw new UnauthorizedException("UnAuthorized Access Denied");
+    }
+
     if (!restaurant.resetPasswordCode)
       throw new NotFoundException("OTP not found");
 
@@ -256,9 +283,39 @@ async function checkOTP(req: Request, res: Response) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
   }
 }
-async function generateResetPasswordToken() {
-  // generate 64 bit token
+
+async function resetPassword(req: Request, res: Response) {
+  try {
+    const { token, newPassword } = req.body;
+
+    const restaurant = await ResturantCredential.findOne({
+      resetPassswordToken: token,
+      isActive: true,
+    });
+
+    if (!restaurant) throw new NotFoundException("Restaurant not found");
+
+    if (restaurant.resetPasswordTokenExpiry < new Date()) {
+      return res
+        .status(401)
+        .json(
+          BaseResponse.fail(
+            "Token expired",
+            ResponseStatus.RESET_PASSWORD_EXPIRED
+          )
+        );
+    }
+
+    restaurant.hashedPassword = await hashPassword(newPassword);
+    restaurant.resetPassswordToken = null;
+    restaurant.resetPasswordTokenExpiry = null;
+    await restaurant.save();
+    res.status(200).json(BaseResponse.success(true, ResponseStatus.SUCCESS));
+  } catch (error) {
+    res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
+  }
 }
+
 async function changePassword(req: Request, res: Response) {
   try {
     const { restaurantId, oldPassword, newPassword } = req.body;
@@ -302,4 +359,11 @@ async function checkIsUserUnique(
   return ResponseStatus.INTERNAL_SERVER_ERROR;
 }
 
-export { signin, signup, changePassword, resetPassword, checkOTP };
+export {
+  signin,
+  signup,
+  changePassword,
+  resetPasswordRequest,
+  checkOTP,
+  resetPassword,
+};

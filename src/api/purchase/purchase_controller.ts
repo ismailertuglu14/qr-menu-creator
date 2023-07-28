@@ -53,6 +53,7 @@ async function purchasePlan(req: Request, res: Response) {
     const { planId } = req.params;
     const { type } = req.query;
     const periodType = type === "0" ? PeriodType.MONTHLY : PeriodType.ANNUALLY;
+
     const isAlreadySubscribed = await PurchaseModel.findOne({
       restaurantId,
       isActive: true,
@@ -69,7 +70,7 @@ async function purchasePlan(req: Request, res: Response) {
     );
 
     if (!plan) throw new NotFoundException("Plan not found");
-
+    const infinityDate = new Date(8640000000000000);
     const purchase = await PurchaseModel.create({
       plan,
       restaurantId,
@@ -80,7 +81,9 @@ async function purchasePlan(req: Request, res: Response) {
           ? plan.monthlyPrice
           : plan.annuallyPrice,
       expirationDate:
-        periodType === PeriodType.MONTHLY
+        plan.name === "Free-Tier"
+          ? infinityDate
+          : periodType === PeriodType.MONTHLY
           ? new Date(Date.now() + ONE_MONTH)
           : new Date(Date.now() + ONE_YEAR),
 

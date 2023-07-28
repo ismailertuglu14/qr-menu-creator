@@ -1,6 +1,8 @@
 import TokenDto from "api/dtos/token_dto";
-import JWT, { SignOptions } from "jsonwebtoken";
+import JWT from "jsonwebtoken";
 
+import crypto from "crypto";
+import randomString from "randomstring";
 const ACCESS_TOKEN_EXPIRATION = 60 * 60 * 24 * 30; // 1 month
 const REFRESH_TOKEN_EXPIRATION = 60 * 60 * 24 * 30 * 2; // 2 months
 export function generateToken(payload: any): TokenDto {
@@ -20,4 +22,11 @@ export function generateToken(payload: any): TokenDto {
 
 export function verifyToken(token: string) {
   return JWT.verify(token, process.env.JWT_SECRET_KEY);
+}
+
+export function generateResetPasswordToken() {
+  return randomString.generate({
+    length: 40,
+    charset: "alphanumeric",
+  });
 }

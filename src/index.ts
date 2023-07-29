@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.use("/api", Routes);
-sendMenuViewedNotification();
+//sendMenuViewedNotification();
 app.listen(PORT, async () => {
   await connectMongoDb();
 

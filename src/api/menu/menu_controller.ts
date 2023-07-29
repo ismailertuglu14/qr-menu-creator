@@ -333,7 +333,7 @@ async function relocateMenu(req: Request, res: Response) {
 }
 async function publishMenu(req: Request, res: Response) {
   try {
-    const { restaurantId } = req.body;
+    const { restaurantId, templateId } = req.body;
     const { menuId } = req.params;
 
     const menu = await MenuModel.findOne({
@@ -345,12 +345,18 @@ async function publishMenu(req: Request, res: Response) {
     if (!menu) throw new NotFoundException("Menu not found");
 
     menu.isPublished = menu.isPublished ? false : true;
+    menu.templateId = templateId;
 
     await menu.save();
 
     res
       .status(200)
-      .json(BaseResponse.success(menu.isPublished, ResponseStatus.SUCCESS));
+      .json(
+        BaseResponse.success(
+          { isPublished: menu.isPublished, templateId },
+          ResponseStatus.SUCCESS
+        )
+      );
   } catch (error) {
     res
       .status(500)

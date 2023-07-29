@@ -1,8 +1,12 @@
 import mongoose from "mongoose";
-import FeatureType from "./feature_type";
-import PlanType from "./plan_enum";
+import FeatureType from "./models/feature_type";
+import PlanType from "./models/plan_enum";
 
 const planSchema = new mongoose.Schema({
+  tier: {
+    type: Number,
+    unique: true,
+  },
   name: {
     type: String,
     required: true,

@@ -33,6 +33,7 @@ async function updatePlan(req: Request, res: Response) {
       maxMenuCount,
       maxProductCount,
       position,
+      tier,
     } = req.body;
 
     const { id } = req.params;
@@ -57,6 +58,7 @@ async function updatePlan(req: Request, res: Response) {
         annuallyPrice,
         monthlyDiscount,
         annuallyDiscount,
+        tier,
         maxMenuCount,
         maxProductCount,
         position,

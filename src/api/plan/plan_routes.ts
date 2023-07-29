@@ -28,6 +28,7 @@ router.post(
         annuallyDiscount,
         maxMenuCount,
         maxProductCount,
+        tier,
       } = req.body;
 
       if (role !== Roles.ADMIN) {
@@ -53,6 +54,7 @@ router.post(
         maxProductCount,
         position,
         isActive: true,
+        tier,
       });
 
       await plan.save();

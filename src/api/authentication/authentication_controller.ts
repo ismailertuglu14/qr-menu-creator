@@ -5,7 +5,8 @@ import { signUpValidator } from "../../features/validators/signup_validator";
 // Models
 import ResturantCredential from "./restaurant_credential_model";
 import Restaurant from "../restaurant/restaurant_model";
-
+import PurchaseModel from "../purchase/purchase_model";
+import PlanModel from "../plan/plan_model";
 // Exceptions
 import UnauthorizedException from "../../core/exceptions/unauthorized_exception";
 
@@ -38,6 +39,8 @@ import { generate6DigitCode } from "../../features/utils/number_helpers";
 import OTPExpiredException from "../../core/exceptions/otp_expired_exception";
 import OTPIncorrectException from "../../core/exceptions/otp_incorrect_exception";
 import { mailHelper, passwordRequestMailWithOTP } from "./utils/mail_helper";
+import PeriodType from "../../api/purchase/models/period_tpe";
+import mongoose from "mongoose";
 
 async function signin(req: Request, res: Response) {
   try {
@@ -126,16 +129,29 @@ async function signup(req: Request, res: Response) {
     if (!restauntCredentialResponse)
       throw new Error("Error while creating user");
 
-    var restaurant = new Restaurant({
+    const plan = await PlanModel.findOne({ tier: 0, isActive: true });
+    const purchase = await PurchaseModel.create({
+      plan,
+      restaurantId: restauntCredentialResponse._id,
+      purchaseDate: new Date(),
+      expirationDate: new Date(8640000000000000),
+      paymentMethod: "system",
+      paymentStatus: "paid",
+      price: 0,
+      periodType: PeriodType.LIFETIME,
+    });
+
+    var restaurantResponse = await Restaurant.create({
       _id: restaurantCredential._id,
       name: restaurantName,
+      currentPlanId: purchase._id,
     });
-    var restaurantResponse = await Restaurant.create(restaurant);
 
     const token = generateToken({
       id: restauntCredentialResponse._id,
-      role: restaurant.role,
+      role: restaurantResponse.role,
     });
+
     return res
       .status(200)
       .json(BaseResponse.success(token, ResponseStatus.SUCCESS));

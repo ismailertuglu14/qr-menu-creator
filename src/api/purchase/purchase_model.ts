@@ -1,4 +1,4 @@
-import FeatureType from "../plan/feature_type";
+import FeatureType from "../plan/models/feature_type";
 import mongoose, { Mongoose, mongo } from "mongoose";
 import PeriodType from "./models/period_tpe";
 
@@ -6,6 +6,8 @@ const Purchase = new mongoose.Schema({
   plan: {
     type: {
       _id: String,
+      tier: Number,
+
       name: {
         type: String,
         required: true,

@@ -183,7 +183,7 @@ async function getAll(req: Request, res: Response) {
 
 async function createMenu(req: Request, res: Response) {
   try {
-    const { restaurantId, templateId, name } = req.body;
+    const { restaurantId, name } = req.body;
     // check menu count less than max menu count
     const menuCount = await MenuModel.countDocuments({
       restaurantId,
@@ -233,7 +233,7 @@ async function createMenu(req: Request, res: Response) {
     });
     const menu = await MenuModel.create({
       restaurantId,
-      templateId,
+      templateId: 0,
       name,
       slug,
       coverImage: imageName,
@@ -242,7 +242,7 @@ async function createMenu(req: Request, res: Response) {
 
     await MenuValidator.validate({
       restaurantId,
-      templateId,
+      templateId: 0,
     }).catch((err) => {
       throw new BadRequestException(err);
     });

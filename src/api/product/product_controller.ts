@@ -17,6 +17,7 @@ import MenuModel from "../menu/menu_model";
 import CategoryModel from "../category/models/category_model";
 import NotFoundException from "../../core/exceptions/not_found_exception";
 import { AllergenModel, defaultAllergenTypes } from "./models/allergen_model";
+import { get } from "axios";
 
 async function customerGetProductById(req: Request, res: Response) {
   try {
@@ -25,6 +26,10 @@ async function customerGetProductById(req: Request, res: Response) {
       { _id: id, isActive: true },
       { __v: 0, isActive: 0 }
     ).orFail(new NotFoundException("Product not found"));
+
+    product.images = product.images.map((image: any) =>
+      getFileNameWithUrl(StorageEnum.PRODUCT_IMAGES, image)
+    );
     res.status(200).json(BaseResponse.success(product));
   } catch (error) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));
@@ -36,7 +41,9 @@ async function restaurantGetProductById(req: Request, res: Response) {
     const product = await ProductModel.findOne({ _id: id }, { __v: 0 }).orFail(
       new NotFoundException("Product not found")
     );
-
+    product.images = product.images.map((image: any) =>
+      getFileNameWithUrl(StorageEnum.PRODUCT_IMAGES, image)
+    );
     res.status(200).json(BaseResponse.success(product));
   } catch (error) {
     res.status(500).json(BaseResponse.fail(error.message, error.statusCode));

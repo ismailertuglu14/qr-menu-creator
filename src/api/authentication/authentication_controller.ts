@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, query } from "express";
 import { signInValidator } from "../../features/validators/signin_validator";
 import { signUpValidator } from "../../features/validators/signup_validator";
 
@@ -18,13 +18,11 @@ import { ResponseStatus } from "../../core/constants/response_status_enum";
 import {
   generateResetPasswordToken,
   generateToken,
-  verifyToken,
 } from "../../features/utils/token_helper";
 import {
   hashPassword,
   comparePassword,
 } from "../../features/utils/hash_password";
-import bcrypt from "bcryptjs";
 
 import NodeMailer from "nodemailer";
 
@@ -41,6 +39,9 @@ import OTPIncorrectException from "../../core/exceptions/otp_incorrect_exception
 import { mailHelper, passwordRequestMailWithOTP } from "./utils/mail_helper";
 import PeriodType from "../../api/purchase/models/period_tpe";
 import mongoose from "mongoose";
+import { OAuth2Client } from "google-auth-library";
+import axios from "axios";
+import Provider from "./models/provider_model";
 
 async function signin(req: Request, res: Response) {
   try {
@@ -56,6 +57,7 @@ async function signin(req: Request, res: Response) {
 
     var response = await ResturantCredential.findOne({
       email: email,
+      provider: Provider.INTERNAL,
     });
 
     if (!response) {
@@ -166,11 +168,13 @@ async function signup(req: Request, res: Response) {
       );
   }
 }
-async function googleLogin(req: Request, res: Response) {
+async function googleLoginRequest(req: Request, res: Response) {
   try {
+    console.log("id", process.env.CLIENT_ID);
+
     const stringifiedParams = queryString.stringify({
       client_id: process.env.CLIENT_ID,
-      redirect_uri: "https://www.example.com/authenticate/google",
+      redirect_uri: "http://localhost:3333/api/v1/auth/google",
       scope: [
         "https://www.googleapis.com/auth/userinfo.email",
         "https://www.googleapis.com/auth/userinfo.profile",
@@ -184,7 +188,7 @@ async function googleLogin(req: Request, res: Response) {
 
     return res
       .status(200)
-      .json(BaseResponse.success("", ResponseStatus.SUCCESS));
+      .json(BaseResponse.success(googleLoginUrl, ResponseStatus.SUCCESS));
   } catch (error) {
     res
       .status(500)
@@ -193,7 +197,97 @@ async function googleLogin(req: Request, res: Response) {
       );
   }
 }
+async function getTokens(
+  code: any,
+  clientId: any,
+  clientSecret: any,
+  redirectUri: any
+) {
+  const url = "https://oauth2.googleapis.com/token";
+  const values = {
+    code,
+    client_id: clientId,
+    client_secret: clientSecret,
+    redirect_uri: redirectUri,
+    grant_type: "authorization_code",
+  };
+  return axios
+    .post(url, queryString.stringify(values), {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    })
+    .then((res) => res.data);
+}
+async function google(req: Request, res: Response) {
+  const code = req.query.code as string;
+  const { access_token } = await getTokens(
+    code,
+    process.env.CLIENT_ID,
+    process.env.CLIENT_SECRET,
+    "http://localhost:3333/api/v1/auth/google"
+  );
+  const googleUser = await axios.get(
+    "https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=" +
+      access_token,
+    {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      },
+    }
+  );
 
+  const { email, given_name, family_name } = googleUser.data;
+
+  // Check is user unique
+  const response: ResponseStatus = await checkIsUserUnique(null, email);
+
+  const _rest = await ResturantCredential.findOne({
+    email,
+  });
+
+  if (_rest && _rest.provider === Provider.GOOGLE) {
+    const token = generateToken({
+      id: _rest._id,
+      role: _rest.role,
+    });
+
+    return res
+      .status(200)
+      .json(BaseResponse.success(token, ResponseStatus.SUCCESS));
+  }
+
+  const restaurantCredential = await ResturantCredential.create({
+    email: email,
+    hashedPassword: await hashPassword(given_name + family_name + email),
+    provider: Provider.GOOGLE,
+  });
+
+  const plan = await PlanModel.findOne({ tier: 0, isActive: true });
+  const purchase = await PurchaseModel.create({
+    plan,
+    restaurantId: restaurantCredential._id,
+    purchaseDate: new Date(),
+    expirationDate: new Date(8640000000000000),
+    paymentMethod: "system",
+    paymentStatus: "paid",
+    price: 0,
+    periodType: PeriodType.LIFETIME,
+  });
+
+  const restaurant = await Restaurant.create({
+    _id: restaurantCredential._id,
+    name: given_name + " " + family_name,
+    currentPlanId: purchase._id,
+  });
+
+  const token = generateToken({
+    id: restaurantCredential._id,
+    role: restaurant.role,
+  });
+
+  res.status(200).json(BaseResponse.success(token, ResponseStatus.SUCCESS));
+}
 /**
  * This is the first step of resetPassword.
  */
@@ -378,6 +472,8 @@ async function checkIsUserUnique(
 export {
   signin,
   signup,
+  googleLoginRequest,
+  google,
   changePassword,
   resetPasswordRequest,
   checkOTP,

@@ -4,6 +4,8 @@ import authorizationMiddleware from "../../features/middlewares/authorization_mi
 import {
   changePassword,
   checkOTP,
+  googleLoginRequest,
+  google,
   resetPassword,
   resetPasswordRequest,
   signin,
@@ -12,7 +14,9 @@ import {
 const router = Router();
 
 router.post("/signin", signin);
-router.post("/google-login");
+router.get("/test", googleLoginRequest);
+router.post("/google-login", googleLoginRequest);
+router.get("/google", google);
 router.post("/signup", signup);
 router.put("/change-password", authorizationMiddleware, changePassword);
 

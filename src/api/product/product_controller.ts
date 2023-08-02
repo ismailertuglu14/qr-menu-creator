@@ -264,8 +264,8 @@ async function updateProduct(req: Request, res: Response) {
         productImages
       );
     }
-    var ingredientsList = JSON.parse(ingredients);
-    var nutritionList = JSON.parse(nutritions);
+    var ingredientsList = ingredients && JSON.parse(ingredients);
+    var nutritionList = nutritions && JSON.parse(nutritions);
 
     var updatedProduct = await ProductModel.findOneAndUpdate(
       { _id: productId },

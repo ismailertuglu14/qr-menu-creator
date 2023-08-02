@@ -6,6 +6,7 @@ import path from "path";
 // Routes"
 import Routes from "./api/_routes/index";
 import { sendMenuViewedNotification } from "../src/api/notification/notification_controller";
+
 dotenv.config();
 const PORT = process.env.PORT || 3000;
 const app = express();
